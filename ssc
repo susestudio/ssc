@@ -1,0 +1,106 @@
+#!/usr/bin/ruby
+
+require 'net/http'
+require 'xml/smart'
+require 'cgi'
+
+require "optparse"
+
+$server_name="http://susestudio.com/"
+$api_prefix="api/v1/user"
+$username=""
+$password=""
+
+
+class Request
+  attr_accessor :method, :call, :args
+
+  def go
+    uri = URI.parse("http://#{$server_name}/#{$api_prefix}/#{call}")
+    request = Net::HTTP::Get.new(uri.path)
+    request.basic_auth($username, $password)
+    begin
+      Net::HTTP.start(uri.host, uri.port) do |http|
+        http.read_timeout = 45
+        response = http.request(request)
+        unless( response.kind_of? Net::HTTPSuccess )
+          return ["Server returned '#{response.code}', message: \n#{response.body}", false]
+        end
+        return [response.body, true]
+      end
+    rescue => e
+      return ["Error: #{e.to_s}", false]
+    end
+  end
+end
+
+class ApplianceHandler
+  def self.list_appliances s
+    xml = XML::Smart.string( s )
+    xml.find("/appliances/appliance").each do |a|
+      puts "Id:       " + a.find("id").first.to_s
+      puts "Name:     " + a.find("name").first.to_s
+      puts "Based on: " + a.find("basesystem").first.to_s
+      puts
+    end
+  end
+end
+
+
+#if ARGV.size != 2
+opt = OptionParser.new
+opt.banner = "Usage: ssc <cmd> [options]"
+
+opt.on( "-h", "--help", "Print this message" ) do
+  puts opt
+  exit
+end
+
+opt.on( "-s", "--server-name", "=SERVER_NAME",
+  "Server name" ) do |v|
+  $server_name = v
+end
+
+opt.on( "-u", "--username", "=USER_NAME", "User name") do |v|
+  $username = v
+end
+
+opt.on( "-p", "--password", "=PASSWORD", "Password") do |v|
+  $password = v
+end
+
+begin
+  opt.parse!( ARGV )
+rescue OptionParser::InvalidOption
+  STDERR.puts $!
+  STDERR.puts opt
+  exit 1
+end
+
+#if ARGV.size != 2
+
+begin
+  opt.parse!( ARGV )
+rescue OptionParser::InvalidOption
+  STDERR.puts $!
+  STDERR.puts opt
+  exit 1
+end
+
+#if ARGV.size != 2
+#  STDERR.puts opt
+#  exit 1
+#end
+cmd = ARGV[0]
+
+if cmd == "list_appliances"
+  r = Request.new
+  r.method = "GET"
+  r.call = "appliances"
+  xml, success = r.go
+  if success
+    ApplianceHandler.list_appliances xml
+  else
+    puts xml
+  end
+end
