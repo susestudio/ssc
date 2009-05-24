@@ -69,31 +69,44 @@ class ApplianceHandler
 
     res
   end
+
+  def self.template_sets s
+    xml = XML::Smart.string( s )
+    res = String.new
+
+    xml.find("/template_sets/template_set").each do |ts|
+      res << "'#{ts.find("name").first.to_s}' Templates (#{ts.find("description").first.to_s}):\n"
+      ts.find("template").each do |t|
+        res << "  == #{t.find("name").first.to_s}\n"
+        res << "    Id:          #{t.find("appliance_id").first.to_s}\n"
+        res << "    Description: #{t.find("description").first.to_s}\n"
+        res << "    Based on:    #{t.find("basesystem").first.to_s}\n\n"
+      end
+    end
+
+    res
+  end
 end
 
 
 #if ARGV.size != 2
 opt = OptionParser.new
 opt.banner = "Usage: ssc [options] <cmd> [command-options]"
-
+opt.separator("Options")
 opt.on( "-h", "--help", "Print this message" ) do
   puts opt
   exit
 end
-
 opt.on( "-s", "--server", "=HOST",
   "The Studio hostname" ) do |v|
   $server_name = v
 end
-
 opt.on( "-u", "--username", "=USER_NAME", "User name") do |v|
   $username = v
 end
-
 opt.on( "-p", "--password", "=PASSWORD", "Password") do |v|
   $password = v
 end
-
 opt.on( "-v", "--version",  "Print the version") do |v|
   puts "ssc #{version} - A command line interface to SUSE Studio"
   exit 0
@@ -105,6 +118,7 @@ opt.separator("    Managing your appliances:")
 opt.separator("      listappliances,la\t\t     Get a list of your appliances")
 opt.separator("      cloneappliance,ca\t\t     Create a new appliance by cloning a template")
 opt.separator("      deleteappliance,da\t     Delete an appliance")
+opt.separator("      listtemplates,lt\t\t     Get a list of available templates")
 opt.separator("\n")
 
 begin
@@ -171,6 +185,22 @@ elsif cmd == "deleteappliance" or cmd == "da"
    STDERR.puts xml
     exit 1
   end
+
+
+elsif cmd == "listtemplates" or cmd =="lt"
+  r = Request.new
+  r.method = "GET"
+  r.call = "template_sets"
+  xml, success = r.go
+  if success
+    puts ApplianceHandler.template_sets xml
+    exit 0
+  else
+    STDERR.puts xml
+    exit 1
+  end
+
+
 else
   STDERR.puts "Unknown command: #{cmd}\n"
   STDERR.puts opt
