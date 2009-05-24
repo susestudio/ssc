@@ -34,7 +34,7 @@ class Request
         http.read_timeout = 45
         response = http.request(request)
         unless( response.kind_of? Net::HTTPSuccess )
-          return ["Server returned '#{response.code}', message: \n#{response.body}", false]
+          return [response.body, false]
         end
         return [response.body, true]
       end
@@ -62,19 +62,16 @@ class ApplianceHandler
   def self.clone_appliance s
     xml = XML::Smart.string( s )
     res = String.new
-    
     res << "Created Appliance: #{xml.find("/appliance/name").first.to_s}\n"
     res << "  Id:          " + xml.find("/appliance/id").first.to_s + "\n"
     res << "  Based on:    " + xml.find("/appliance/basesystem").first.to_s + "\n"
     res << "  Cloned from: #{xml.find("/appliance/parent/name").first.to_s} (#{xml.find("/appliance/parent/id").first.to_s})\n" unless xml.find("/appliance/parent/name").length == 0
-
     res
   end
 
   def self.template_sets s
     xml = XML::Smart.string( s )
     res = String.new
-
     xml.find("/template_sets/template_set").each do |ts|
       res << "'#{ts.find("name").first.to_s}' Templates (#{ts.find("description").first.to_s}):\n"
       ts.find("template").each do |t|
@@ -84,7 +81,6 @@ class ApplianceHandler
         res << "    Based on:    #{t.find("basesystem").first.to_s}\n\n"
       end
     end
-
     res
   end
 end
@@ -94,12 +90,44 @@ class BuildHandler
   def self.build_appliance s
     xml = XML::Smart.string( s )
     res = String.new
-
     res << "Triggered build: #{xml.find("/build/id").first.to_s}" unless xml.find("/build/id").length == 0
-
+    res
+  end
+  
+  def self.show_running_build s
+    xml = XML::Smart.string( s )
+    res = String.new
+    return unless xml.find("/running_builds/id").length > 0
+    res << xml.find("/running_builds/state").first.to_s
+    res << ", #{xml.find("/running_builds/percent").first.to_s}% done - #{xml.find("/running_builds/message").first.to_s} (#{xml.find("/running_builds/time_elapsed").first.to_s}s elapsed)" unless xml.find("/running_builds/state").first.to_s == "error"
     res
   end
 end
+
+def handle_error s
+  xml = XML::Smart.string(s)
+  if xml.find("/error/code").length > 0
+    STDERR.puts "Error '#{xml.find("/error/code").first.to_s}' occured.\nMessage: #{xml.find("/error/message").first.to_s}"
+  else
+    STDERR.puts "Server returned: #{s}"
+  end
+  exit 1
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #if ARGV.size != 2
@@ -124,7 +152,7 @@ opt.on( "-v", "--version",  "Print the version") do |v|
   puts "ssc #{version} - A command line interface to SUSE Studio"
   exit 0
 end
-opt.on("-f", "--force", "Force a build, even if it overwrites an existing build") do |v|
+opt.on("-f", "--force", "Force action") do |v|
   force = v
 end
 
@@ -138,6 +166,7 @@ opt.separator("      listtemplates,lt\t\t     Get a list of available templates"
 opt.separator("\n")
 opt.separator("    Managing builds:")
 opt.separator("      buildappliance,ba\t\t     Trigger a build of an appliance")
+opt.separator("      showrunningbuild,sb\t\t     Show the status of a running build")
 opt.separator("\n")
 
 begin
@@ -163,8 +192,7 @@ if cmd == "listappliances" or cmd =="la"
     puts ApplianceHandler.list_appliances xml
     exit 0
   else
-    STDERR.puts xml
-    exit 1
+    handle_error xml
   end
 
 
@@ -182,8 +210,7 @@ elsif cmd == "cloneappliance" or cmd =="ca"
     puts ApplianceHandler.clone_appliance xml
     exit 0
   else
-    STDERR.puts xml
-    exit 1
+    handle_error xml
   end
 
 
@@ -201,8 +228,7 @@ elsif cmd == "deleteappliance" or cmd == "da"
     puts "Success."
     exit 0
   else
-   STDERR.puts xml
-    exit 1
+    handle_error xml
   end
 
 
@@ -215,8 +241,7 @@ elsif cmd == "listtemplates" or cmd =="lt"
     puts ApplianceHandler.template_sets xml
     exit 0
   else
-    STDERR.puts xml
-    exit 1
+    handle_error xml
   end
 
 
@@ -235,8 +260,25 @@ elsif cmd == "buildappliance" or cmd =="ba"
     puts BuildHandler.build_appliance xml
     exit 0
   else
-    STDERR.puts xml
+    handle_error xml
+  end
+
+
+elsif cmd == "showrunningbuild" or cmd =="sb"
+  build = ARGV[1]
+  if build.nil? || build.empty?
+    STDERR.puts "You need to specify an running build."
     exit 1
+  end
+  r = Request.new
+  r.method = "GET"
+  r.call = "running_builds/#{build}"
+  xml, success = r.go
+  if success
+    puts BuildHandler.show_running_build xml
+    exit 0
+  else
+    handle_error xml
   end
 
 
