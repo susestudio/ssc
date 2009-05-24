@@ -10,6 +10,7 @@ $server_name="susestudio.com"
 $api_prefix="api/v1/user"
 $username=""
 $password=""
+version="0.1"
 
 
 class Request
@@ -92,6 +93,19 @@ end
 opt.on( "-p", "--password", "=PASSWORD", "Password") do |v|
   $password = v
 end
+
+opt.on( "-v", "--version",  "Print the version") do |v|
+  puts "ssc #{version} - A command line interface to SUSE Studio"
+  exit 0
+end
+
+opt.separator("\n")
+opt.separator("Commands:")
+opt.separator("    Managing your appliances:")
+opt.separator("      listappliances,la\t\t     Get a list of your appliances")
+opt.separator("      cloneappliance,ca\t\t     Create a new appliance by cloning a template")
+opt.separator("      deleteappliance,da\t     Delete an appliance")
+opt.separator("\n")
 
 begin
   opt.parse!( ARGV )
