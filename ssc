@@ -13,18 +13,18 @@ $password=""
 
 
 class Request
-  attr_accessor :method, :call, :args, :data
+  attr_accessor :method, :call, :data
 
   def go
-    args |= Hash.new
     uri = URI.parse("http://#{$server_name}/#{$api_prefix}/#{call}")
-    puts uri
     request = nil
     if method == "GET"
       request = Net::HTTP::Get.new(uri.request_uri)
     elsif method == "POST"
       request = Net::HTTP::Post.new(uri.request_uri)
       request.set_form_data(data, ";") unless data.nil?
+    elsif method == "DELETE"
+      request = Net::HTTP::Delete.new(uri.request_uri)
     end
     request.basic_auth($username, $password)
     begin
@@ -73,7 +73,7 @@ end
 
 #if ARGV.size != 2
 opt = OptionParser.new
-opt.banner = "Usage: ssc <cmd> [options]"
+opt.banner = "Usage: ssc [options] <cmd> [command-options]"
 
 opt.on( "-h", "--help", "Print this message" ) do
   puts opt
@@ -101,20 +101,10 @@ rescue OptionParser::InvalidOption
   exit 1
 end
 
-#if ARGV.size != 2
-
-begin
-  opt.parse!( ARGV )
-rescue OptionParser::InvalidOption
-  STDERR.puts $!
+if ARGV.size == 0
   STDERR.puts opt
   exit 1
 end
-
-#if ARGV.size != 2
-#  STDERR.puts opt
-#  exit 1
-#end
 cmd = ARGV[0]
 
 if cmd == "listappliances" or cmd =="la"
@@ -126,13 +116,15 @@ if cmd == "listappliances" or cmd =="la"
     puts ApplianceHandler.list_appliances xml
     exit 0
   else
-    puts xml
+    STDERR.puts xml
     exit 1
   end
+
+
 elsif cmd == "cloneappliance" or cmd =="ca"
   clonefrom = ARGV[1]
   if clonefrom.nil? || clonefrom.empty?
-    puts "You need to specify a template."
+    STDERR.puts "You need to specify a template."
     exit 1
   end
   r = Request.new
@@ -143,7 +135,30 @@ elsif cmd == "cloneappliance" or cmd =="ca"
     puts ApplianceHandler.clone_appliance xml
     exit 0
   else
-    puts xml
+    STDERR.puts xml
     exit 1
   end
+
+
+elsif cmd == "deleteappliance" or cmd == "da"
+  appliance = ARGV[1]
+  if appliance.nil? || appliance.empty?
+    STDERR.puts "You need to specify an appliance."
+    exit 1
+  end
+  r = Request.new
+  r.method = "DELETE"
+  r.call = "appliances/#{appliance}"
+  xml, success = r.go
+  if success
+    puts "Success."
+    exit 0
+  else
+   STDERR.puts xml
+    exit 1
+  end
+else
+  STDERR.puts "Unknown command: #{cmd}\n"
+  STDERR.puts opt
+  exit 1
 end
