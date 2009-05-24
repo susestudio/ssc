@@ -6,18 +6,26 @@ require 'cgi'
 
 require "optparse"
 
-$server_name="http://susestudio.com/"
+$server_name="susestudio.com"
 $api_prefix="api/v1/user"
 $username=""
 $password=""
 
 
 class Request
-  attr_accessor :method, :call, :args
+  attr_accessor :method, :call, :args, :data
 
   def go
+    args |= Hash.new
     uri = URI.parse("http://#{$server_name}/#{$api_prefix}/#{call}")
-    request = Net::HTTP::Get.new(uri.path)
+    puts uri
+    request = nil
+    if method == "GET"
+      request = Net::HTTP::Get.new(uri.request_uri)
+    elsif method == "POST"
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request.set_form_data(data, ";") unless data.nil?
+    end
     request.basic_auth($username, $password)
     begin
       Net::HTTP.start(uri.host, uri.port) do |http|
@@ -37,12 +45,28 @@ end
 class ApplianceHandler
   def self.list_appliances s
     xml = XML::Smart.string( s )
+    res = String.new
     xml.find("/appliances/appliance").each do |a|
-      puts "Id:       " + a.find("id").first.to_s
-      puts "Name:     " + a.find("name").first.to_s
-      puts "Based on: " + a.find("basesystem").first.to_s
-      puts
+      res << "== " + a.find("name").first.to_s + "\n"
+      res << "  Id:          " + a.find("id").first.to_s + "\n"
+      res << "  Based on:    " + a.find("basesystem").first.to_s + "\n"
+      res << "  Cloned from: #{a.find("parent/name").first.to_s} (#{a.find("parent/id").first.to_s})\n" unless a.find("parent/name").length == 0
+      res << "  Builds:      #{a.find("builds/build").length} (#{a.find("builds/build/compressed_image_size").inject(0){|sum,item| sum + item.to_i}})\n"
+      res << "\n"
     end
+    res
+  end
+
+  def self.clone_appliance s
+    xml = XML::Smart.string( s )
+    res = String.new
+    
+    res << "Created Appliance: #{xml.find("/appliance/name").first.to_s}\n"
+    res << "  Id:          " + xml.find("/appliance/id").first.to_s + "\n"
+    res << "  Based on:    " + xml.find("/appliance/basesystem").first.to_s + "\n"
+    res << "  Cloned from: #{xml.find("/appliance/parent/name").first.to_s} (#{xml.find("/appliance/parent/id").first.to_s})\n" unless xml.find("/appliance/parent/name").length == 0
+
+    res
   end
 end
 
@@ -56,8 +80,8 @@ opt.on( "-h", "--help", "Print this message" ) do
   exit
 end
 
-opt.on( "-s", "--server-name", "=SERVER_NAME",
-  "Server name" ) do |v|
+opt.on( "-s", "--server", "=HOST",
+  "The Studio hostname" ) do |v|
   $server_name = v
 end
 
@@ -93,14 +117,33 @@ end
 #end
 cmd = ARGV[0]
 
-if cmd == "list_appliances"
+if cmd == "listappliances" or cmd =="la"
   r = Request.new
   r.method = "GET"
   r.call = "appliances"
   xml, success = r.go
   if success
-    ApplianceHandler.list_appliances xml
+    puts ApplianceHandler.list_appliances xml
+    exit 0
   else
     puts xml
+    exit 1
+  end
+elsif cmd == "cloneappliance" or cmd =="ca"
+  clonefrom = ARGV[1]
+  if clonefrom.nil? || clonefrom.empty?
+    puts "You need to specify a template."
+    exit 1
+  end
+  r = Request.new
+  r.method = "POST"
+  r.call = "appliances?clone_from=#{clonefrom}"
+  xml, success = r.go
+  if success
+    puts ApplianceHandler.clone_appliance xml
+    exit 0
+  else
+    puts xml
+    exit 1
   end
 end
