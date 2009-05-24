@@ -10,6 +10,7 @@ $server_name="susestudio.com"
 $api_prefix="api/v1/user"
 $username=""
 $password=""
+force = false
 version="0.1"
 
 
@@ -89,6 +90,18 @@ class ApplianceHandler
 end
 
 
+class BuildHandler
+  def self.build_appliance s
+    xml = XML::Smart.string( s )
+    res = String.new
+
+    res << "Triggered build: #{xml.find("/build/id").first.to_s}" unless xml.find("/build/id").length == 0
+
+    res
+  end
+end
+
+
 #if ARGV.size != 2
 opt = OptionParser.new
 opt.banner = "Usage: ssc [options] <cmd> [command-options]"
@@ -111,6 +124,9 @@ opt.on( "-v", "--version",  "Print the version") do |v|
   puts "ssc #{version} - A command line interface to SUSE Studio"
   exit 0
 end
+opt.on("-f", "--force", "Force a build, even if it overwrites an existing build") do |v|
+  force = v
+end
 
 opt.separator("\n")
 opt.separator("Commands:")
@@ -119,6 +135,9 @@ opt.separator("      listappliances,la\t\t     Get a list of your appliances")
 opt.separator("      cloneappliance,ca\t\t     Create a new appliance by cloning a template")
 opt.separator("      deleteappliance,da\t     Delete an appliance")
 opt.separator("      listtemplates,lt\t\t     Get a list of available templates")
+opt.separator("\n")
+opt.separator("    Managing builds:")
+opt.separator("      buildappliance,ba\t\t     Trigger a build of an appliance")
 opt.separator("\n")
 
 begin
@@ -194,6 +213,26 @@ elsif cmd == "listtemplates" or cmd =="lt"
   xml, success = r.go
   if success
     puts ApplianceHandler.template_sets xml
+    exit 0
+  else
+    STDERR.puts xml
+    exit 1
+  end
+
+
+elsif cmd == "buildappliance" or cmd =="ba"
+  appliance = ARGV[1]
+  if appliance.nil? || appliance.empty?
+    STDERR.puts "You need to specify an appliance."
+    exit 1
+  end
+  r = Request.new
+  r.method = "POST"
+  r.call = "running_builds?appliance_id=#{appliance}"
+  r.call += "&force=1" if force
+  xml, success = r.go
+  if success
+    puts BuildHandler.build_appliance xml
     exit 0
   else
     STDERR.puts xml
