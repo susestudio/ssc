@@ -44,32 +44,84 @@ class Request
   end
 end
 
-class ApplianceHandler
-  def self.list_appliances s
+class CommandHandler
+   def self.doRequest r
+    xml, success = r.go
+    if success
+     return xml
+    else
+      handle_error xml
+    end
+   end
+
+  def self.handle_error s
+    xml = XML::Smart.string(s)
+    if xml.find("/error/code").length > 0
+      STDERR.puts "Error '#{xml.find("/error/code").first.to_s}' occured.\nMessage: #{xml.find("/error/message").first.to_s}"
+    else
+      STDERR.puts "Server returned: #{s}"
+    end
+    exit 1
+  end
+end
+
+class ApplianceHandler < CommandHandler
+  def self.list_appliances
+    r = Request.new
+    r.method = "GET"
+    r.call = "appliances"
+    s = doRequest(r)
+
     xml = XML::Smart.string( s )
     res = String.new
     xml.find("/appliances/appliance").each do |a|
-      res << "== " + a.find("name").first.to_s + "\n"
-      res << "  Id:          " + a.find("id").first.to_s + "\n"
-      res << "  Based on:    " + a.find("basesystem").first.to_s + "\n"
+      res << "#{a.find("id").first.to_s}: #{a.find("name").first.to_s} (based on #{a.find("basesystem").first.to_s})\n"
       res << "  Cloned from: #{a.find("parent/name").first.to_s} (#{a.find("parent/id").first.to_s})\n" unless a.find("parent/name").length == 0
       res << "  Builds:      #{a.find("builds/build").length} (#{a.find("builds/build/compressed_image_size").inject(0){|sum,item| sum + item.to_i}})\n"
       res << "\n"
     end
-    res
+    puts res
   end
 
-  def self.clone_appliance s
+  def self.clone_appliance args
+    clonefrom = args[1]
+    if clonefrom.nil? || clonefrom.empty?
+      STDERR.puts "You need to specify a template."
+      exit 1
+    end
+    r = Request.new
+    r.method = "POST"
+    r.call = "appliances?clone_from=#{clonefrom}"
+    s = doRequest(r)
+
     xml = XML::Smart.string( s )
     res = String.new
     res << "Created Appliance: #{xml.find("/appliance/name").first.to_s}\n"
     res << "  Id:          " + xml.find("/appliance/id").first.to_s + "\n"
     res << "  Based on:    " + xml.find("/appliance/basesystem").first.to_s + "\n"
     res << "  Cloned from: #{xml.find("/appliance/parent/name").first.to_s} (#{xml.find("/appliance/parent/id").first.to_s})\n" unless xml.find("/appliance/parent/name").length == 0
-    res
+    puts res
   end
 
-  def self.template_sets s
+  def self.delete_appliance args
+    appliance = args[1]
+    if appliance.nil? || appliance.empty?
+      STDERR.puts "You need to specify an appliance."
+      exit 1
+    end
+    r = Request.new
+    r.method = "DELETE"
+    r.call = "appliances/#{appliance}"
+    doRequest(r)
+    puts "Success."
+  end
+
+  def self.template_sets
+    r = Request.new
+    r.method = "GET"
+    r.call = "template_sets"
+    s = doRequest(r)
+    
     xml = XML::Smart.string( s )
     res = String.new
     xml.find("/template_sets/template_set").each do |ts|
@@ -81,38 +133,50 @@ class ApplianceHandler
         res << "    Based on:    #{t.find("basesystem").first.to_s}\n\n"
       end
     end
-    res
+    puts res
   end
 end
 
 
-class BuildHandler
-  def self.build_appliance s
+class BuildHandler < CommandHandler
+  def self.build_appliance args, force
+    appliance = args[1]
+    if appliance.nil? || appliance.empty?
+      STDERR.puts "You need to specify an appliance."
+      exit 1
+    end
+    r = Request.new
+    r.method = "POST"
+    r.call = "running_builds?appliance_id=#{appliance}"
+    r.call += "&force=1" if force
+    s = doRequest(r)
+
     xml = XML::Smart.string( s )
     res = String.new
     res << "Triggered build: #{xml.find("/build/id").first.to_s}" unless xml.find("/build/id").length == 0
-    res
+    puts res
   end
   
-  def self.show_running_build s
+  def self.show_running_build args
+    build = args[1]
+    if build.nil? || build.empty?
+      STDERR.puts "You need to specify an running build."
+      exit 1
+    end
+    r = Request.new
+    r.method = "GET"
+    r.call = "running_builds/#{build}"
+    s = doRequest(r)
+
     xml = XML::Smart.string( s )
     res = String.new
     return unless xml.find("/running_builds/id").length > 0
     res << xml.find("/running_builds/state").first.to_s
     res << ", #{xml.find("/running_builds/percent").first.to_s}% done - #{xml.find("/running_builds/message").first.to_s} (#{xml.find("/running_builds/time_elapsed").first.to_s}s elapsed)" unless xml.find("/running_builds/state").first.to_s == "error"
-    res
+    puts res
   end
 end
 
-def handle_error s
-  xml = XML::Smart.string(s)
-  if xml.find("/error/code").length > 0
-    STDERR.puts "Error '#{xml.find("/error/code").first.to_s}' occured.\nMessage: #{xml.find("/error/message").first.to_s}"
-  else
-    STDERR.puts "Server returned: #{s}"
-  end
-  exit 1
-end
 
 
 
@@ -166,7 +230,7 @@ opt.separator("      listtemplates,lt\t\t     Get a list of available templates"
 opt.separator("\n")
 opt.separator("    Managing builds:")
 opt.separator("      buildappliance,ba\t\t     Trigger a build of an appliance")
-opt.separator("      showrunningbuild,sb\t\t     Show the status of a running build")
+opt.separator("      showrunningbuild,sb\t     Show the status of a running build")
 opt.separator("\n")
 
 begin
@@ -184,103 +248,22 @@ end
 cmd = ARGV[0]
 
 if cmd == "listappliances" or cmd =="la"
-  r = Request.new
-  r.method = "GET"
-  r.call = "appliances"
-  xml, success = r.go
-  if success
-    puts ApplianceHandler.list_appliances xml
-    exit 0
-  else
-    handle_error xml
-  end
-
+  ApplianceHandler.list_appliances
 
 elsif cmd == "cloneappliance" or cmd =="ca"
-  clonefrom = ARGV[1]
-  if clonefrom.nil? || clonefrom.empty?
-    STDERR.puts "You need to specify a template."
-    exit 1
-  end
-  r = Request.new
-  r.method = "POST"
-  r.call = "appliances?clone_from=#{clonefrom}"
-  xml, success = r.go
-  if success
-    puts ApplianceHandler.clone_appliance xml
-    exit 0
-  else
-    handle_error xml
-  end
-
+  ApplianceHandler.clone_appliance ARGV
 
 elsif cmd == "deleteappliance" or cmd == "da"
-  appliance = ARGV[1]
-  if appliance.nil? || appliance.empty?
-    STDERR.puts "You need to specify an appliance."
-    exit 1
-  end
-  r = Request.new
-  r.method = "DELETE"
-  r.call = "appliances/#{appliance}"
-  xml, success = r.go
-  if success
-    puts "Success."
-    exit 0
-  else
-    handle_error xml
-  end
-
+  ApplianceHandler.delete_appliance ARGV
 
 elsif cmd == "listtemplates" or cmd =="lt"
-  r = Request.new
-  r.method = "GET"
-  r.call = "template_sets"
-  xml, success = r.go
-  if success
-    puts ApplianceHandler.template_sets xml
-    exit 0
-  else
-    handle_error xml
-  end
-
+  ApplianceHandler.template_sets
 
 elsif cmd == "buildappliance" or cmd =="ba"
-  appliance = ARGV[1]
-  if appliance.nil? || appliance.empty?
-    STDERR.puts "You need to specify an appliance."
-    exit 1
-  end
-  r = Request.new
-  r.method = "POST"
-  r.call = "running_builds?appliance_id=#{appliance}"
-  r.call += "&force=1" if force
-  xml, success = r.go
-  if success
-    puts BuildHandler.build_appliance xml
-    exit 0
-  else
-    handle_error xml
-  end
-
+  BuildHandler.build_appliance ARGV, force
 
 elsif cmd == "showrunningbuild" or cmd =="sb"
-  build = ARGV[1]
-  if build.nil? || build.empty?
-    STDERR.puts "You need to specify an running build."
-    exit 1
-  end
-  r = Request.new
-  r.method = "GET"
-  r.call = "running_builds/#{build}"
-  xml, success = r.go
-  if success
-    puts BuildHandler.show_running_build xml
-    exit 0
-  else
-    handle_error xml
-  end
-
+  BuildHandler.show_running_build ARGV
 
 else
   STDERR.puts "Unknown command: #{cmd}\n"
