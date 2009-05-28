@@ -170,9 +170,9 @@ class BuildHandler < CommandHandler
 
     xml = XML::Smart.string( s )
     res = String.new
-    return unless xml.find("/running_builds/id").length > 0
-    res << xml.find("/running_builds/state").first.to_s
-    res << ", #{xml.find("/running_builds/percent").first.to_s}% done - #{xml.find("/running_builds/message").first.to_s} (#{xml.find("/running_builds/time_elapsed").first.to_s}s elapsed)" unless xml.find("/running_builds/state").first.to_s == "error"
+    return unless xml.find("/running_build/id").length > 0
+    res << xml.find("/running_build/state").first.to_s
+    res << ", #{xml.find("/running_build/percent").first.to_s}% done - #{xml.find("/running_build/message").first.to_s} (#{xml.find("/running_build/time_elapsed").first.to_s}s elapsed)" unless xml.find("/running_builds/state").first.to_s == "error"
     puts res
   end
 end
