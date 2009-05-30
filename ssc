@@ -154,11 +154,31 @@ class BuildHandler < CommandHandler
     res << "Triggered build: #{xml.find("/build/id").first.to_s}" unless xml.find("/build/id").length == 0
     puts res
   end
+
+  def self.list_running_builds args
+    appliance = args[1]
+    if appliance.nil? || appliance.empty?
+      STDERR.puts "You need to specify an applliance."
+      exit 1
+    end
+    r = Request.new
+    r.method = "GET"
+    r.call = "running_builds/?appliance_id=#{appliance}"
+    s = doRequest(r)
+
+    xml = XML::Smart.string( s )
+    res = String.new
+    xml.find("/running_builds/running_build").each do |rb|
+      res << "#{rb.find("id").first.to_s}: #{rb.find("state").first.to_s}"
+      res << ", #{rb.find("percent").first.to_s}% done - #{rb.find("message").first.to_s} (#{rb.find("time_elapsed").first.to_s}s elapsed)" unless xml.find("state").first.to_s == "error"
+    end
+    puts res unless res.empty?
+  end
   
   def self.show_running_build args
     build = args[1]
     if build.nil? || build.empty?
-      STDERR.puts "You need to specify an running build."
+      STDERR.puts "You need to specify a running build."
       exit 1
     end
     r = Request.new
@@ -228,7 +248,8 @@ opt.separator("      listtemplates,lt\t\t     Get a list of available templates"
 opt.separator("\n")
 opt.separator("    Managing builds:")
 opt.separator("      buildappliance,ba\t\t     Trigger a build of an appliance")
-opt.separator("      showrunningbuild,sb\t     Show the status of a running build")
+opt.separator("      listrunningbuilds,lrb\t     List all running builds of an appliance")
+opt.separator("      showrunningbuild,srb\t     Show the status of a running build")
 opt.separator("\n")
 
 begin
@@ -260,7 +281,10 @@ elsif cmd == "listtemplates" or cmd =="lt"
 elsif cmd == "buildappliance" or cmd =="ba"
   BuildHandler.build_appliance ARGV, force
 
-elsif cmd == "showrunningbuild" or cmd =="sb"
+elsif cmd == "listrunningbuilds" or cmd =="lrb"
+  BuildHandler.list_running_builds ARGV
+
+elsif cmd == "showrunningbuild" or cmd =="srb"
   BuildHandler.show_running_build ARGV
 
 else
