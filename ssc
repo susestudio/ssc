@@ -127,10 +127,8 @@ class ApplianceHandler < CommandHandler
     xml.find("/template_sets/template_set").each do |ts|
       res << "'#{ts.find("name").first.to_s}' Templates (#{ts.find("description").first.to_s}):\n"
       ts.find("template").each do |t|
-        res << "  == #{t.find("name").first.to_s}\n"
-        res << "    Id:          #{t.find("appliance_id").first.to_s}\n"
-        res << "    Description: #{t.find("description").first.to_s}\n"
-        res << "    Based on:    #{t.find("basesystem").first.to_s}\n\n"
+        res << " #{t.find("appliance_id").first.to_s}: #{t.find("name").first.to_s} (based on #{t.find("basesystem").first.to_s})\n"
+        res << "    Description: #{t.find("description").first.to_s}\n\n"
       end
     end
     puts res
