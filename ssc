@@ -193,6 +193,28 @@ class BuildHandler < CommandHandler
     res << ", #{xml.find("/running_build/percent").first.to_s}% done - #{xml.find("/running_build/message").first.to_s} (#{xml.find("/running_build/time_elapsed").first.to_s}s elapsed)" unless xml.find("/running_builds/state").first.to_s == "error"
     puts res
   end
+    def self.list_builds args
+    appliance = args[1]
+    if appliance.nil? || appliance.empty?
+      STDERR.puts "You need to specify an applliance."
+      exit 1
+    end
+    r = Request.new
+    r.method = "GET"
+    r.call = "builds/?appliance_id=#{appliance}"
+    s = doRequest(r)
+    puts s
+
+    xml = XML::Smart.string( s )
+    res = String.new
+    xml.find("/builds/build").each do |rb|
+      res << "#{rb.find("id").first.to_s}: #{rb.find("state").first.to_s}"
+      res << ", v#{rb.find("version").first.to_s} (#{rb.find("image_type").first.to_s})"
+      res <<  " (#{rb.find("compressed_image_size").first.to_s} MB)" if rb.find("compressed_image_size").length > 0
+      res << " #{rb.find("download_url").first.to_s}" if rb.find("download_url").length > 0
+    end
+    puts res unless res.empty?
+  end
 end
 
 
@@ -250,6 +272,7 @@ opt.separator("    Managing builds:")
 opt.separator("      buildappliance,ba\t\t     Trigger a build of an appliance")
 opt.separator("      listrunningbuilds,lrb\t     List all running builds of an appliance")
 opt.separator("      showrunningbuild,srb\t     Show the status of a running build")
+opt.separator("      listbuilds,lb\t     List builds of an appliance")
 opt.separator("\n")
 
 begin
@@ -286,6 +309,9 @@ elsif cmd == "listrunningbuilds" or cmd =="lrb"
 
 elsif cmd == "showrunningbuild" or cmd =="srb"
   BuildHandler.show_running_build ARGV
+
+elsif cmd == "listbuilds" or cmd =="lb"
+  BuildHandler.list_builds ARGV
 
 else
   STDERR.puts "Unknown command: #{cmd}\n"
