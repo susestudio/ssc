@@ -242,6 +242,32 @@ class BuildHandler < CommandHandler
     end
     puts res unless res.empty?
   end
+
+  def self.cancel_build args
+    build = args[1]
+    if build.nil? || build.empty?
+      STDERR.puts "You need to specify a build."
+      exit 1
+    end
+    r = Request.new
+    r.method = "DELETE"
+    r.call = "running_builds/#{build}"
+    doRequest(r)
+    puts "Success."
+  end
+
+  def self.delete_build args
+    build = args[1]
+    if build.nil? || build.empty?
+      STDERR.puts "You need to specify a build."
+      exit 1
+    end
+    r = Request.new
+    r.method = "DELETE"
+    r.call = "builds/#{build}"
+    doRequest(r)
+    puts "Success."
+  end
 end
 
 
@@ -317,6 +343,12 @@ elsif ARGV.include?("lb") || ARGV.include?("listbuilds")
 elsif ARGV.include?("sb") || ARGV.include?("showbuild")
   opt.banner = "Usage: ssc [options] showbuild ID"
   opt.separator("Show information on a build.")
+elsif ARGV.include?("cb") || ARGV.include?("cancelbuild")
+  opt.banner = "Usage: ssc [options] cancelbuild ID"
+  opt.separator("Cancel a running build.")
+elsif ARGV.include?("db") || ARGV.include?("deletebuild")
+  opt.banner = "Usage: ssc [options] deletebuild ID"
+  opt.separator("Delete a finished build.")
 else
   opt.banner = "Usage: ssc [options] COMMAND [command-options]"
   opt.separator("SUSE Studio command line client.")
@@ -336,6 +368,8 @@ else
   opt.separator("      showrunningbuild,srb\t     Show the status of a running build")
   opt.separator("      listbuilds,lb\t\t     List builds of an appliance")
   opt.separator("      showbuild,sb\t\t     Show information on a build")
+  opt.separator("      cancelbuild,cb\t\t     Cancel a running build")
+  opt.separator("      deletebuild,db\t\t     Delete a finished build")
   opt.separator("\n")
 end
 
@@ -380,6 +414,12 @@ elsif cmd == "listbuilds" or cmd =="lb"
 
 elsif cmd == "showbuild" or cmd =="sb"
   BuildHandler.show_build ARGV
+
+elsif cmd == "cancelbuild" or cmd =="cb"
+  BuildHandler.cancel_build ARGV
+
+elsif cmd == "deletebuild" or cmd =="db"
+  BuildHandler.delete_build ARGV
 
 else
   STDERR.puts "Unknown command: #{cmd}\n"
