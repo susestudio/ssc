@@ -217,6 +217,7 @@ class BuildHandler < CommandHandler
       res << ", v#{rb.find("version").first.to_s} (#{rb.find("image_type").first.to_s})"
       res <<  " (#{rb.find("compressed_image_size").first.to_s} MB)" if rb.find("compressed_image_size").length > 0
       res << " #{rb.find("download_url").first.to_s}" if rb.find("download_url").length > 0
+      res << "\n"
     end
     puts res unless res.empty?
   end
