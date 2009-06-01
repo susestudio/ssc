@@ -255,15 +255,8 @@ end
 
 
 
-
-#if ARGV.size != 2
 opt = OptionParser.new
-opt.banner = "Usage: ssc [options] <cmd> [command-options]"
 opt.separator("Options")
-opt.on( "-h", "--help", "Print this message" ) do
-  puts opt
-  exit
-end
 opt.on( "-s", "--server", "=HOST",
   "The Studio hostname" ) do |v|
   $server_name = v
@@ -274,29 +267,69 @@ end
 opt.on( "-p", "--password", "=PASSWORD", "Password") do |v|
   $password = v
 end
+opt.on( "-h", "--help", "Print this message" ) do
+  puts opt
+  exit
+end
 opt.on( "-v", "--version",  "Print the version") do |v|
   puts "ssc #{version} - A command line interface to SUSE Studio"
   exit 0
 end
-opt.on("-f", "--force", "Force action") do |v|
-  force = v
-end
 
-opt.separator("\n")
-opt.separator("Commands:")
-opt.separator("    Managing your appliances:")
-opt.separator("      listappliances,la\t\t     Get a list of your appliances")
-opt.separator("      cloneappliance,ca\t\t     Create a new appliance by cloning a template")
-opt.separator("      deleteappliance,da\t     Delete an appliance")
-opt.separator("      listtemplates,lt\t\t     Get a list of available templates")
-opt.separator("\n")
-opt.separator("    Managing builds:")
-opt.separator("      buildappliance,ba\t\t     Trigger a build of an appliance")
-opt.separator("      listrunningbuilds,lrb\t     List all running builds of an appliance")
-opt.separator("      showrunningbuild,srb\t     Show the status of a running build")
-opt.separator("      listbuilds,lb\t     List builds of an appliance")
-opt.separator("      showbuild,sb\t     Show information on a build")
-opt.separator("\n")
+
+if ARGV.include?("ba") || ARGV.include?("buildappliance")
+  opt.banner = "Usage: ssc [options] buildappliance APPLIANCE [command-options]"
+  opt.separator("Trigger a build of an appliance.")
+  opt.separator("\n")
+  opt.separator("Command options:")
+  opt.on( "-f", "--force","Force building the appliance even if it overwrites a build") do |v|
+    force = v
+  end
+elsif ARGV.include?("la") || ARGV.include?("listappliances")
+  opt.banner = "Usage: ssc [options] listappliances"
+  opt.separator("Show a list of your appliances.")
+elsif ARGV.include?("ca") || ARGV.include?("cloneappliance")
+  opt.banner = "Usage: ssc [options] cloneappliance APPLIANCE"
+  opt.separator("Create a new appliance by cloning a template.")
+elsif ARGV.include?("da") || ARGV.include?("deleteappliance")
+  opt.banner = "Usage: ssc [options] deleteappliance APPLIANCE"
+  opt.separator("Delete an appliance.")
+elsif ARGV.include?("lt") || ARGV.include?("listtemplates")
+  opt.banner = "Usage: ssc [options] listtemplates"
+  opt.separator("Get a list of available templates.")
+elsif ARGV.include?("lrb") || ARGV.include?("listrunningbuilds")
+  opt.banner = "Usage: ssc [options] listrunningbuilds APPLIANCE"
+  opt.separator("List all running builds of an appliance.")
+elsif ARGV.include?("srb") || ARGV.include?("showrunningbuild")
+  opt.banner = "Usage: ssc [options] showrunningbuild ID"
+  opt.separator("Show the status of a running build.")
+elsif ARGV.include?("lb") || ARGV.include?("listbuilds")
+  opt.banner = "Usage: ssc [options] listbuilds APPLIANCE"
+  opt.separator("List builds of an appliance.")
+elsif ARGV.include?("sb") || ARGV.include?("showbuild")
+  opt.banner = "Usage: ssc [options] showbuild ID"
+  opt.separator("Show information on a build.")
+else
+  opt.banner = "Usage: ssc [options] COMMAND [command-options]"
+  opt.separator("SUSE Studio command line client.")
+  opt.separator("Type 'ssc COMMAND --help' for help on a specific command.")
+
+  opt.separator("\n")
+  opt.separator("Commands:")
+  opt.separator("    Managing your appliances:")
+  opt.separator("      listappliances,la\t\t     Get a list of your appliances")
+  opt.separator("      cloneappliance,ca\t\t     Create a new appliance by cloning a template")
+  opt.separator("      deleteappliance,da\t     Delete an appliance")
+  opt.separator("      listtemplates,lt\t\t     Get a list of available templates")
+  opt.separator("\n")
+  opt.separator("    Managing builds:")
+  opt.separator("      buildappliance,ba\t\t     Trigger a build of an appliance")
+  opt.separator("      listrunningbuilds,lrb\t     List all running builds of an appliance")
+  opt.separator("      showrunningbuild,srb\t     Show the status of a running build")
+  opt.separator("      listbuilds,lb\t\t     List builds of an appliance")
+  opt.separator("      showbuild,sb\t\t     Show information on a build")
+  opt.separator("\n")
+end
 
 begin
   opt.parse!( ARGV )
@@ -310,6 +343,7 @@ if ARGV.size == 0
   STDERR.puts opt
   exit 1
 end
+
 cmd = ARGV[0]
 
 if cmd == "listappliances" or cmd =="la"
@@ -338,6 +372,9 @@ elsif cmd == "listbuilds" or cmd =="lb"
 
 elsif cmd == "showbuild" or cmd =="sb"
   BuildHandler.show_build ARGV
+
+elsif cmd == "help"
+  showHelp ARGV[1]
 
 else
   STDERR.puts "Unknown command: #{cmd}\n"
