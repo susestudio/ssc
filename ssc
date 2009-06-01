@@ -11,6 +11,7 @@ $api_prefix="api/v1/user"
 $username=""
 $password=""
 force = false
+follow = false
 version="0.1"
 
 
@@ -175,7 +176,7 @@ class BuildHandler < CommandHandler
     puts res unless res.empty?
   end
   
-  def self.show_running_build args
+  def self.show_running_build args, follow
     build = args[1]
     if build.nil? || build.empty?
       STDERR.puts "You need to specify a running build."
@@ -184,14 +185,18 @@ class BuildHandler < CommandHandler
     r = Request.new
     r.method = "GET"
     r.call = "running_builds/#{build}"
-    s = doRequest(r)
+    while 1
+      s = doRequest(r)
 
-    xml = XML::Smart.string( s )
-    res = String.new
-    return unless xml.find("/running_build/id").length > 0
-    res << xml.find("/running_build/state").first.to_s
-    res << ", #{xml.find("/running_build/percent").first.to_s}% done - #{xml.find("/running_build/message").first.to_s} (#{xml.find("/running_build/time_elapsed").first.to_s}s elapsed)" unless xml.find("/running_builds/state").first.to_s == "error"
-    puts res
+      xml = XML::Smart.string( s )
+      res = String.new
+      return unless xml.find("/running_build/id").length > 0
+      res << xml.find("/running_build/state").first.to_s
+      res << ", #{xml.find("/running_build/percent").first.to_s}% done - #{xml.find("/running_build/message").first.to_s} (#{xml.find("/running_build/time_elapsed").first.to_s}s elapsed)" unless xml.find("/running_builds/state").first.to_s == "error"
+      puts res
+      exit 0 unless follow
+      sleep 5
+    end
   end
 
   def self.list_builds args
@@ -303,6 +308,9 @@ elsif ARGV.include?("lrb") || ARGV.include?("listrunningbuilds")
 elsif ARGV.include?("srb") || ARGV.include?("showrunningbuild")
   opt.banner = "Usage: ssc [options] showrunningbuild ID"
   opt.separator("Show the status of a running build.")
+  opt.on( "-f", "--follow","Follow the progress of the build") do |f|
+    follow = f
+  end
 elsif ARGV.include?("lb") || ARGV.include?("listbuilds")
   opt.banner = "Usage: ssc [options] listbuilds APPLIANCE"
   opt.separator("List builds of an appliance.")
@@ -365,16 +373,13 @@ elsif cmd == "listrunningbuilds" or cmd =="lrb"
   BuildHandler.list_running_builds ARGV
 
 elsif cmd == "showrunningbuild" or cmd =="srb"
-  BuildHandler.show_running_build ARGV
+  BuildHandler.show_running_build ARGV, follow
 
 elsif cmd == "listbuilds" or cmd =="lb"
   BuildHandler.list_builds ARGV
 
 elsif cmd == "showbuild" or cmd =="sb"
   BuildHandler.show_build ARGV
-
-elsif cmd == "help"
-  showHelp ARGV[1]
 
 else
   STDERR.puts "Unknown command: #{cmd}\n"
