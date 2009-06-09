@@ -301,10 +301,13 @@ class CheckoutHandler < CommandHandler
     puts "Checkout '#{appliancexml.find("appliance/name").first.to_s}'\n"
 
     FileUtils.mkdir_p id
-    FileUtils.mkdir_p id + "/.ssc"
-    FileUtils.mkdir_p id + "/files"
-    FileUtils.mkdir_p id + "/rpms"
-    FileUtils.mkdir_p id + "/images"
+    [ ".ssc", ".ssc/files", ".ssc/rpms", "files", "rpms", "images"].each do |d|
+      FileUtils.mkdir_p id + "/" + d
+    end
+
+    XML::Smart.modify("#{id}/.ssc/appliance.config","<checkout/>") { |doc|
+      node = doc.root.add("appliance_id", id)
+    }
 
     # Get files
     r = Request.new
@@ -316,9 +319,16 @@ class CheckoutHandler < CommandHandler
     filesxml.find("files/file").each do |f|
       filename = f.find("filename").first.to_s
       fileid = f.find("id").first.to_s
+      path = "#{id}/files/#{filename}"
       puts "  Downloading '#{filename}'"
 
-      download_file "http://#{$server_name}/#{$api_prefix}/files/#{fileid}/data", "#{id}/files/#{filename}"
+      download_file "http://#{$server_name}/#{$api_prefix}/files/#{fileid}/data", path
+      download_file "http://#{$server_name}/#{$api_prefix}/files/#{fileid}", "#{id}/.ssc/files/#{filename}.config"
+      XML::Smart.modify("#{id}/.ssc/files/#{filename}.config") do |doc|
+        node = doc.find("/file").first
+        node.add("md5", `md5sum #{path}`.split[0])
+        node.add("state", "synched")
+      end
     end
 
     # Get rpms
@@ -331,9 +341,16 @@ class CheckoutHandler < CommandHandler
     rpmsxml.find("rpms/rpm").each do |rpm|
       filename = rpm.find("filename").first.to_s
       fileid = rpm.find("id").first.to_s
+      path = "#{id}/rpms/#{filename}"
       puts "  Downloading '#{filename}'"
       
-      download_file "http://#{$server_name}/#{$api_prefix}/rpms/#{fileid}/data", "#{id}/rpms/#{filename}"
+      download_file "http://#{$server_name}/#{$api_prefix}/rpms/#{fileid}/data", path
+      download_file "http://#{$server_name}/#{$api_prefix}/rpms/#{fileid}", "#{id}/.ssc/rpms/#{filename}.config"
+      XML::Smart.modify("#{id}/.ssc/rpms/#{filename}.config") do |doc|
+        node = doc.find("/rpm").first
+        node.add("md5", `md5sum #{path}`.split[0])
+        node.add("state", "synched")
+      end
     end
 
     if images
@@ -345,7 +362,30 @@ class CheckoutHandler < CommandHandler
     else
       puts "  Skipped downloading images (change with -i)'"
     end
+  end
 
+  def self.status
+    appliance_config = XML::Smart.open(".ssc/appliance.config")
+    id = appliance_config.find("/checkout/appliance_id").first.to_s
+
+    Dir.entries("files").each do |file|
+      if [".", ".."].include?(file) then next end
+      if File.exists?(".ssc/files/#{file}.config")
+        xml = XML::Smart.open(".ssc/files/#{file}.config")
+        oldmd5 = xml.find("file/md5").first.to_s
+        status = xml.find("file/state").first.to_s
+        md5 = `md5sum files/#{file}`.split[0]
+        if status == "synched" and md5 == oldmd5
+          next
+        elsif status == "synched" and md5 != oldmd5
+          puts " M #{file}"
+        elsif status == "added"
+          puts " A #{file}"
+        end
+      else
+        puts " ? #{file}"
+      end
+    end
   end
 
 end
@@ -428,6 +468,9 @@ elsif ARGV.include?("co") || ARGV.include?("checkout")
   opt.on( "-i", "--download-images","Download images of the appliance") do |i|
     images = i
   end
+elsif ARGV.include?("st") || ARGV.include?("status")
+  opt.banner = "Usage: ssc [options] status"
+  opt.separator("Show the status of the checkout.")
 else
   opt.banner = "Usage: ssc [options] COMMAND [command-options]"
   opt.separator("SUSE Studio command line client.")
@@ -505,6 +548,9 @@ elsif cmd == "deletebuild" or cmd =="db"
 
 elsif cmd == "checkout" or cmd =="co"
   CheckoutHandler.checkout ARGV, images
+
+elsif cmd == "status" or cmd =="st"
+  CheckoutHandler.status
 
 else
   STDERR.puts "Unknown command: #{cmd}\n"
