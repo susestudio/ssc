@@ -341,7 +341,13 @@ class CheckoutHandler < CommandHandler
     end
 
     if images
-      
+      appliancexml.find("appliance/builds/build").each do |build|
+        url = build.find("download_url").first.to_s
+        puts "  Downloading image '#{File.basename(url)}'"
+        download_file url, "#{id}/images/#{File.basename(url)}"
+      end
+    else
+      puts "  Skipped downloading images (change with -i)'"
     end
 
   end
