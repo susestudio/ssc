@@ -307,6 +307,7 @@ class CheckoutHandler < CommandHandler
 
     XML::Smart.modify("#{id}/.ssc/appliance.config","<checkout/>") { |doc|
       node = doc.root.add("appliance_id", id)
+      node = doc.root.add("appliance_name", appliancexml.find("appliance/name").first.to_s)
     }
 
     # Get files
@@ -323,10 +324,10 @@ class CheckoutHandler < CommandHandler
       puts "  Downloading '#{filename}'"
 
       download_file "http://#{$server_name}/#{$api_prefix}/files/#{fileid}/data", path
+      FileUtils.cp path, "#{id}/.ssc/files/#{filename}.orig"
       download_file "http://#{$server_name}/#{$api_prefix}/files/#{fileid}", "#{id}/.ssc/files/#{filename}.config"
       XML::Smart.modify("#{id}/.ssc/files/#{filename}.config") do |doc|
         node = doc.find("/file").first
-        node.add("md5", `md5sum #{path}`.split[0])
         node.add("state", "synched")
       end
     end
@@ -345,10 +346,10 @@ class CheckoutHandler < CommandHandler
       puts "  Downloading '#{filename}'"
       
       download_file "http://#{$server_name}/#{$api_prefix}/rpms/#{fileid}/data", path
+      FileUtils.cp path, "#{id}/.ssc/rpms/#{filename}.orig"
       download_file "http://#{$server_name}/#{$api_prefix}/rpms/#{fileid}", "#{id}/.ssc/rpms/#{filename}.config"
       XML::Smart.modify("#{id}/.ssc/rpms/#{filename}.config") do |doc|
         node = doc.find("/rpm").first
-        node.add("md5", `md5sum #{path}`.split[0])
         node.add("state", "synched")
       end
     end
@@ -367,24 +368,72 @@ class CheckoutHandler < CommandHandler
   def self.status
     appliance_config = XML::Smart.open(".ssc/appliance.config")
     id = appliance_config.find("/checkout/appliance_id").first.to_s
+    name = appliance_config.find("/checkout/appliance_name").first.to_s
 
+    show_files = false
+    unknown_files = Array.new
+    added_files = Array.new
+    modified_files = Array.new
     Dir.entries("files").each do |file|
       if [".", ".."].include?(file) then next end
       if File.exists?(".ssc/files/#{file}.config")
         xml = XML::Smart.open(".ssc/files/#{file}.config")
-        oldmd5 = xml.find("file/md5").first.to_s
         status = xml.find("file/state").first.to_s
+        oldmd5 = `md5sum .ssc/files/#{file}.orig`.split[0]
         md5 = `md5sum files/#{file}`.split[0]
         if status == "synched" and md5 == oldmd5
           next
         elsif status == "synched" and md5 != oldmd5
-          puts " M #{file}"
+          modified_files << file
+          show_files = true
         elsif status == "added"
-          puts " A #{file}"
+          added_files << file
+          show_files = true
         end
       else
-        puts " ? #{file}"
+          unknown_files << file
+          show_files = true
       end
+    end
+
+    show_rpms = false
+    unknown_rpms = Array.new
+    added_rpms = Array.new
+    modified_rpms = Array.new
+    Dir.entries("rpms").each do |file|
+      if [".", ".."].include?(file) then next end
+      if File.exists?(".ssc/rpms/#{file}.config")
+        xml = XML::Smart.open(".ssc/rpms/#{file}.config")
+        status = xml.find("rpm/state").first.to_s
+        oldmd5 = `md5sum .ssc/rpms/#{file}.orig`.split[0]
+        md5 = `md5sum rpms/#{file}`.split[0]
+        if status == "synched" and md5 == oldmd5
+          next
+        elsif status == "synched" and md5 != oldmd5
+          modified_rpms << file
+          show_rpms = true
+        elsif status == "added"
+          added_rpms << file
+          show_rpms = true
+        end
+      else
+          unknown_rpms << file
+          show_rpms = true
+      end
+    end
+
+    puts "Status of #{name} (#{id}):"
+    if show_files
+      puts " Overlay files:"
+      unknown_files.each {|f| puts "   ? #{f}"}
+      modified_files.each {|f| puts "   M #{f}"}
+      added_files.each {|f| puts "   A #{f}"}
+    end
+    if show_rpms
+      puts " RPMs:"
+      unknown_rpms.each {|f| puts "   ? #{f}"}
+      modified_rpms.each {|f| puts "   M #{f}"}
+      added_rpms.each {|f| puts "   A #{f}"}
     end
   end
 
