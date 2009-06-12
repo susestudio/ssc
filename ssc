@@ -375,6 +375,7 @@ class CheckoutHandler < CommandHandler
     unknown_files = Array.new
     added_files = Array.new
     modified_files = Array.new
+    removed_files = Array.new
     Dir.entries("files").each do |file|
       if [".", ".."].include?(file) then next end
       if File.exists?(".ssc/files/#{file}.config")
@@ -398,11 +399,21 @@ class CheckoutHandler < CommandHandler
           show_files = true
       end
     end
+    Dir.entries(".ssc/files").each do |file|
+      if [".", ".."].include?(file) then next end
+      unless file =~ /.*.config$/ then next end
+      xml = XML::Smart.open(".ssc/files/#{file}")
+      if xml.find("file/state").first.to_s == "removed"
+        removed_files << file.sub(/(.*).config$/, "\\1")
+        show_files = true
+      end
+    end
 
     show_rpms = false
     unknown_rpms = Array.new
     added_rpms = Array.new
     modified_rpms = Array.new
+    removed_rpms = Array.new
     Dir.entries("rpms").each do |file|
       if [".", ".."].include?(file) then next end
       if File.exists?(".ssc/rpms/#{file}.config")
@@ -426,6 +437,15 @@ class CheckoutHandler < CommandHandler
           show_rpms = true
       end
     end
+    Dir.entries(".ssc/rpms").each do |file|
+      if [".", ".."].include?(file) then next end
+      unless file =~ /.*.config$/ then next end
+      xml = XML::Smart.open(".ssc/rpms/#{file}")
+      if xml.find("rpm/state").first.to_s == "removed"
+        removed_rpms << file.sub(/(.*).config$/, "\\1")
+        show_rpms = true
+      end
+    end
 
     puts "Status of #{name} (#{id}):"
     if show_files
@@ -433,12 +453,14 @@ class CheckoutHandler < CommandHandler
       unknown_files.each {|f| puts "   ? #{f}"}
       modified_files.each {|f| puts "   M #{f}"}
       added_files.each {|f| puts "   A #{f}"}
+      removed_files.each {|f| puts "   D #{f}"}
     end
     if show_rpms
       puts " RPMs:"
       unknown_rpms.each {|f| puts "   ? #{f}"}
       modified_rpms.each {|f| puts "   M #{f}"}
       added_rpms.each {|f| puts "   A #{f}"}
+      removed_rpms.each {|f| puts "   D #{f}"}
     end
     unless show_files or show_rpms
       puts "Nothing changed."
@@ -462,16 +484,24 @@ class CheckoutHandler < CommandHandler
         xml = XML::Smart.string(s)
         id = xml.find("file/id").first.to_s unless xml.find("file/id").length == 0
         if id
-          FileUtils.cp filename, ".ssc/rpms/#{filename}.orig"
+          FileUtils.cp "files/#{filename}", ".ssc/rpms/#{filename}.orig"
           download_file "http://#{$server_name}/#{$api_prefix}/rpms/#{id}", ".ssc/rpms/#{filename}.config"
         end
+      elsif (status == "removed")
+        puts "Removing #{filename}"
+        id = config.find("rpm/id").first.to_s
+        r = Request.new
+        r.method = "DELETE"
+        r.call = "rpms/#{id}"
+        doRequest(r)
       else
         oldmd5 = `md5sum .ssc/rpms/#{filename}.orig`.split[0]
         md5 = `md5sum rpms/#{filename}`.split[0]
         if (status == "synched" and md5 != oldmd5)
-         id = config.find("rpm/id").first.to_s
+          id = config.find("rpm/id").first.to_s
           puts "Updating #{filename}"
           `curl -u #{$username}:#{$password} -XPUT -F\"file=@#{"rpms/" + filename}\" http://#{$username}:#{$password}@#{$server_name}/#{$api_prefix}/rpms/#{id}/data 2> /dev/null`
+          download_file "http://#{$server_name}/#{$api_prefix}/rpms/#{id}", ".ssc/rpms/#{filename}.config"
         end
       end
     end
@@ -487,9 +517,18 @@ class CheckoutHandler < CommandHandler
         xml = XML::Smart.string(s)
         id = xml.find("file/id").first.to_s unless xml.find("file/id").length == 0
         if id
-          FileUtils.cp filename, ".ssc/rpms/#{filename}.orig"
+          FileUtils.cp "files/#{filename}", ".ssc/files/#{filename}.orig"
           download_file "http://#{$server_name}/#{$api_prefix}/files/#{id}", ".ssc/files/#{filename}.config"
         end
+      elsif (status == "removed")
+        puts "Removing #{filename}"
+        id = config.find("file/id").first.to_s
+        r = Request.new
+        r.method = "DELETE"
+        r.call = "files/#{id}"
+        doRequest(r)
+        FileUtils.rm ".ssc/files/#{filename}.orig"
+        FileUtils.rm ".ssc/files/#{filename}.config"
       else
         oldmd5 = `md5sum .ssc/files/#{filename}.orig`.split[0]
         md5 = `md5sum files/#{filename}`.split[0]
@@ -497,6 +536,7 @@ class CheckoutHandler < CommandHandler
           id = config.find("file/id").first.to_s
           puts "Updating #{filename}"
           `curl -u #{$username}:#{$password} -XPUT -F\"file=@#{"files/" + filename}\" http://#{$username}:#{$password}@#{$server_name}/#{$api_prefix}/files/#{id}/data 2> /dev/null`
+          download_file "http://#{$server_name}/#{$api_prefix}/files/#{id}", ".ssc/files/#{filename}.config"
         end
       end
     end
@@ -523,6 +563,31 @@ class CheckoutHandler < CommandHandler
       STDERR.puts "Only files in /rpms and /files can be added."
       return 1
     end
+  end
+
+  def self.remove args
+    filename = args[1]
+    path = File.expand_path(filename)
+    basename = File.basename(path)
+    if path =~ /.*\/rpms\/#{basename}/
+      type = "rpm"
+    elsif path =~ /.*\/files\/#{basename}/
+      type = "file"
+    else
+      STDERR.puts "Only files in /rpms and /files can be removed."
+      return 1
+    end
+    unless File.exists?(".ssc/#{type}s/#{basename}.config")
+      STDERR.puts "The file does not belong to the checkout and can not be removed."
+      return 1
+    end
+
+    XML::Smart.modify(".ssc/#{type}s/#{basename}.config") { |doc|
+      nodes = doc.find("#{type}/state")
+      nodes.delete_at!(0)
+      doc.root.add("state", "removed")
+    }
+    FileUtils.rm filename
   end
 
 end
@@ -612,8 +677,11 @@ elsif ARGV.include?("ci") || ARGV.include?("commit")
   opt.banner = "Usage: ssc [options] commit"
   opt.separator("Commit changes to the appliance.")
 elsif ARGV.include?("add")
-  opt.banner = "Usage: ssc [options] add"
-  opt.separator("Add a file to the appliance.")
+  opt.banner = "Usage: ssc [options] add FILE"
+  opt.separator("Add a file to the checkout.")
+elsif ARGV.include?("rm") || ARGV.include?("remove")
+  opt.banner = "Usage: ssc [options] remove FILE"
+  opt.separator("Remove a file from the checkout.")
 else
   opt.banner = "Usage: ssc [options] COMMAND [command-options]"
   opt.separator("SUSE Studio command line client.")
@@ -641,6 +709,7 @@ else
   opt.separator("      status,st\t\t\t     Show the status of the checkout")
   opt.separator("      commit,ci\t\t\t     Commit changes to the appliance")
   opt.separator("      add\t\t\t     Add a file to the checkout")
+  opt.separator("      rm\t\t\t     Remove a file from the checkout")
   opt.separator("\n")
 end
 
@@ -703,6 +772,9 @@ elsif cmd == "commit" or cmd =="ci"
 
 elsif cmd == "add"
   CheckoutHandler.add ARGV
+
+elsif cmd == "remove" or cmd == "rm"
+  CheckoutHandler.remove ARGV
 
 else
   STDERR.puts "Unknown command: #{cmd}\n"
