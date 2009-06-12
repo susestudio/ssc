@@ -308,7 +308,7 @@ class CheckoutHandler < CommandHandler
     XML::Smart.modify("#{id}/.ssc/appliance.config","<checkout/>") { |doc|
       node = doc.root.add("appliance_id", id)
       node = doc.root.add("appliance_name", appliancexml.find("appliance/name").first.to_s)
-      node = doc.root.add("base_system", appliancexml.find("appliance/base_system").first.to_s)
+      node = doc.root.add("base_system", appliancexml.find("appliance/basesystem").first.to_s)
     }
 
     # Get files
@@ -480,11 +480,11 @@ class CheckoutHandler < CommandHandler
 
       if (status == "added")
         puts "Uploading #{filename}"
-        s = `curl -u #{$username}:#{$password} -XPOST -F\"file=@#{"rpms/" + filename}\" http://#{$username}:#{$password}@#{$server_name}/#{$api_prefix}/rpms?base_system=#{base}`
+        s = `curl -u #{$username}:#{$password} -XPOST -F\"file=@#{"rpms/" + filename}\" http://#{$username}:#{$password}@#{$server_name}/#{$api_prefix}/rpms?base_system=#{base} 2> /dev/null`
         xml = XML::Smart.string(s)
-        id = xml.find("file/id").first.to_s unless xml.find("file/id").length == 0
+        id = xml.find("rpm/id").first.to_s unless xml.find("rpm/id").length == 0
         if id
-          FileUtils.cp "files/#{filename}", ".ssc/rpms/#{filename}.orig"
+          FileUtils.cp "rpms/#{filename}", ".ssc/rpms/#{filename}.orig"
           download_file "http://#{$server_name}/#{$api_prefix}/rpms/#{id}", ".ssc/rpms/#{filename}.config"
         end
       elsif (status == "removed")
@@ -494,6 +494,8 @@ class CheckoutHandler < CommandHandler
         r.method = "DELETE"
         r.call = "rpms/#{id}"
         doRequest(r)
+        FileUtils.rm ".ssc/rpms/#{filename}.orig"
+        FileUtils.rm ".ssc/rpms/#{filename}.config"
       else
         oldmd5 = `md5sum .ssc/rpms/#{filename}.orig`.split[0]
         md5 = `md5sum rpms/#{filename}`.split[0]
