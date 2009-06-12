@@ -4,8 +4,8 @@ require 'net/http'
 require 'xml/smart'
 require 'cgi'
 require 'fileutils'
+require 'optparse'
 
-require "optparse"
 
 $server_name="susestudio.com"
 $api_prefix="api/v1/user"
@@ -308,6 +308,7 @@ class CheckoutHandler < CommandHandler
     XML::Smart.modify("#{id}/.ssc/appliance.config","<checkout/>") { |doc|
       node = doc.root.add("appliance_id", id)
       node = doc.root.add("appliance_name", appliancexml.find("appliance/name").first.to_s)
+      node = doc.root.add("base_system", appliancexml.find("appliance/base_system").first.to_s)
     }
 
     # Get files
@@ -379,16 +380,18 @@ class CheckoutHandler < CommandHandler
       if File.exists?(".ssc/files/#{file}.config")
         xml = XML::Smart.open(".ssc/files/#{file}.config")
         status = xml.find("file/state").first.to_s
-        oldmd5 = `md5sum .ssc/files/#{file}.orig`.split[0]
-        md5 = `md5sum files/#{file}`.split[0]
-        if status == "synched" and md5 == oldmd5
-          next
-        elsif status == "synched" and md5 != oldmd5
-          modified_files << file
-          show_files = true
-        elsif status == "added"
+        if status == "added"
           added_files << file
           show_files = true
+        elsif status == "synched"
+          oldmd5 = `md5sum .ssc/files/#{file}.orig`.split[0]
+          md5 = `md5sum files/#{file}`.split[0]
+          if md5 == oldmd5
+            next
+          elsif md5 != oldmd5
+            modified_files << file
+            show_files = true
+          end
         end
       else
           unknown_files << file
@@ -405,16 +408,18 @@ class CheckoutHandler < CommandHandler
       if File.exists?(".ssc/rpms/#{file}.config")
         xml = XML::Smart.open(".ssc/rpms/#{file}.config")
         status = xml.find("rpm/state").first.to_s
-        oldmd5 = `md5sum .ssc/rpms/#{file}.orig`.split[0]
-        md5 = `md5sum rpms/#{file}`.split[0]
-        if status == "synched" and md5 == oldmd5
-          next
-        elsif status == "synched" and md5 != oldmd5
-          modified_rpms << file
-          show_rpms = true
-        elsif status == "added"
+        if status == "added"
           added_rpms << file
           show_rpms = true
+        elsif status == "synched"
+          oldmd5 = `md5sum .ssc/rpms/#{file}.orig`.split[0]
+          md5 = `md5sum rpms/#{file}`.split[0]
+          if md5 == oldmd5
+            next
+          elsif md5 != oldmd5
+            modified_rpms << file
+            show_rpms = true
+          end
         end
       else
           unknown_rpms << file
@@ -434,6 +439,89 @@ class CheckoutHandler < CommandHandler
       unknown_rpms.each {|f| puts "   ? #{f}"}
       modified_rpms.each {|f| puts "   M #{f}"}
       added_rpms.each {|f| puts "   A #{f}"}
+    end
+    unless show_files or show_rpms
+      puts "Nothing changed."
+    end
+  end
+
+  def self.commit
+    appliance = get_appliance_from_args_or_config nil
+    appliance_config = XML::Smart.open(".ssc/appliance.config")
+    base = appliance_config.find("checkout/base_system").first.to_s
+
+    Dir.entries(".ssc/rpms").each do |file|
+      next unless file =~ /.config$/
+      config = XML::Smart.open(".ssc/rpms/" + file)
+      filename = file.gsub(/(.*).config$/, "\\1")
+      status = config.find("rpm/state").first.to_s
+
+      if (status == "added")
+        puts "Uploading #{filename}"
+        s = `curl -u #{$username}:#{$password} -XPOST -F\"file=@#{"rpms/" + filename}\" http://#{$username}:#{$password}@#{$server_name}/#{$api_prefix}/rpms?base_system=#{base}`
+        xml = XML::Smart.string(s)
+        id = xml.find("file/id").first.to_s unless xml.find("file/id").length == 0
+        if id
+          FileUtils.cp filename, ".ssc/rpms/#{filename}.orig"
+          download_file "http://#{$server_name}/#{$api_prefix}/rpms/#{id}", ".ssc/rpms/#{filename}.config"
+        end
+      else
+        oldmd5 = `md5sum .ssc/rpms/#{filename}.orig`.split[0]
+        md5 = `md5sum rpms/#{filename}`.split[0]
+        if (status == "synched" and md5 != oldmd5)
+         id = config.find("rpm/id").first.to_s
+          puts "Updating #{filename}"
+          `curl -u #{$username}:#{$password} -XPUT -F\"file=@#{"rpms/" + filename}\" http://#{$username}:#{$password}@#{$server_name}/#{$api_prefix}/rpms/#{id}/data 2> /dev/null`
+        end
+      end
+    end
+    Dir.entries(".ssc/files").each do |file|
+      next unless file =~ /.config$/
+      config = XML::Smart.open(".ssc/files/" + file)
+      filename = file.gsub(/(.*).config$/, "\\1")
+      status = config.find("file/state").first.to_s
+
+      if (status == "added")
+        puts "Uploading #{filename}"
+        s = `curl -u #{$username}:#{$password} -XPOST -F\"file=@#{"files/" + filename}\" http://#{$username}:#{$password}@#{$server_name}/#{$api_prefix}/files?appliance_id=#{appliance} 2> /dev/null`
+        xml = XML::Smart.string(s)
+        id = xml.find("file/id").first.to_s unless xml.find("file/id").length == 0
+        if id
+          FileUtils.cp filename, ".ssc/rpms/#{filename}.orig"
+          download_file "http://#{$server_name}/#{$api_prefix}/files/#{id}", ".ssc/files/#{filename}.config"
+        end
+      else
+        oldmd5 = `md5sum .ssc/files/#{filename}.orig`.split[0]
+        md5 = `md5sum files/#{filename}`.split[0]
+        if ((status == "synched" or status == "modified") and md5 != oldmd5)
+          id = config.find("file/id").first.to_s
+          puts "Updating #{filename}"
+          `curl -u #{$username}:#{$password} -XPUT -F\"file=@#{"files/" + filename}\" http://#{$username}:#{$password}@#{$server_name}/#{$api_prefix}/files/#{id}/data 2> /dev/null`
+        end
+      end
+    end
+  end
+
+  def self.add args
+    filename = args[1]
+    unless File.exists?(filename)
+      STDERR.puts "File '#{filename}' does not exist."
+      return 1
+    end
+    f = File.open(filename)
+    path = File.expand_path(filename)
+    basename = File.basename(path)
+    if path =~ /.*\/rpms\/#{basename}/
+      XML::Smart.modify(".ssc/rpms/#{basename}.config","<rpm/>") { |doc|
+        node = doc.root.add("state", "added")
+      }
+    elsif path =~ /.*\/files\/#{basename}/
+      XML::Smart.modify(".ssc/files/#{basename}.config","<file/>") { |doc|
+        node = doc.root.add("state", "added")
+      }
+    else
+      STDERR.puts "Only files in /rpms and /files can be added."
+      return 1
     end
   end
 
@@ -520,6 +608,12 @@ elsif ARGV.include?("co") || ARGV.include?("checkout")
 elsif ARGV.include?("st") || ARGV.include?("status")
   opt.banner = "Usage: ssc [options] status"
   opt.separator("Show the status of the checkout.")
+elsif ARGV.include?("ci") || ARGV.include?("commit")
+  opt.banner = "Usage: ssc [options] commit"
+  opt.separator("Commit changes to the appliance.")
+elsif ARGV.include?("add")
+  opt.banner = "Usage: ssc [options] add"
+  opt.separator("Add a file to the appliance.")
 else
   opt.banner = "Usage: ssc [options] COMMAND [command-options]"
   opt.separator("SUSE Studio command line client.")
@@ -542,8 +636,11 @@ else
   opt.separator("      cancelbuild,cb\t\t     Cancel a running build")
   opt.separator("      deletebuild,db\t\t     Delete a finished build")
   opt.separator("\n")
-  opt.separator("    Managing checkouts")
+  opt.separator("    Managing checkouts:")
   opt.separator("      checkout,co\t\t     Checkout an appliance")
+  opt.separator("      status,st\t\t\t     Show the status of the checkout")
+  opt.separator("      commit,ci\t\t\t     Commit changes to the appliance")
+  opt.separator("      add\t\t\t     Add a file to the checkout")
   opt.separator("\n")
 end
 
@@ -600,6 +697,12 @@ elsif cmd == "checkout" or cmd =="co"
 
 elsif cmd == "status" or cmd =="st"
   CheckoutHandler.status
+
+elsif cmd == "commit" or cmd =="ci"
+  CheckoutHandler.commit
+
+elsif cmd == "add"
+  CheckoutHandler.add ARGV
 
 else
   STDERR.puts "Unknown command: #{cmd}\n"
