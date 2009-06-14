@@ -65,14 +65,6 @@ opt.on( "-v", "--version",  "Print the version") do |v|
   exit 0
 end
 
-# Try to get credentials from .netrc
-rc = Net::Netrc.locate($server_name)
-if $username.empty? and $password.empty? and rc
-  $username = rc.login
-  $password = rc.password
-end
-
-
 if ARGV.include?("ba") || ARGV.include?("buildappliance")
   opt.banner = "Usage: ssc [options] buildappliance APPLIANCE [command-options]"
   opt.separator("Trigger a build of an appliance.")
@@ -174,6 +166,13 @@ end
 if ARGV.size == 0
   STDERR.puts opt
   exit 1
+end
+
+# Try to get credentials from .netrc
+rc = Net::Netrc.locate($server_name)
+if $username.empty? and $password.empty? and rc
+  $username = rc.login
+  $password = rc.password
 end
 
 cmd = ARGV[0]

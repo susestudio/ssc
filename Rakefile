@@ -14,6 +14,7 @@ spec = Gem::Specification.new do |s|
   s.require_path = "lib"
   s.extra_rdoc_files = ["README"]
   s.add_dependency("ruby-xml-smart", ">= 0.2")
+  s.add_dependency("net-netrc", ">= 0.2.1")
 end
 
 Rake::GemPackageTask.new(spec) do |pkg|

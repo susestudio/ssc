@@ -265,14 +265,21 @@ class CheckoutHandler < CommandHandler
       STDERR.puts "File '#{filename}' does not exist."
       return 1
     end
-    f = File.open(filename)
     path = File.expand_path(filename)
     basename = File.basename(path)
     if path =~ /.*\/rpms\/#{basename}/
+      if File.exists?(".ssc/rpms/#{basename}.config")
+        STDERR.puts "File '#{filename}' already belongs to the checkout."
+        return 1
+      end
       XML::Smart.modify(".ssc/rpms/#{basename}.config","<rpm/>") { |doc|
         node = doc.root.add("state", "added")
       }
     elsif path =~ /.*\/files\/#{basename}/
+      if File.exists?(".ssc/files/#{basename}.config")
+        STDERR.puts "File '#{filename}' already belongs to the checkout."
+        return 1
+      end
       XML::Smart.modify(".ssc/files/#{basename}.config","<file/>") { |doc|
         node = doc.root.add("state", "added")
       }
@@ -301,8 +308,13 @@ class CheckoutHandler < CommandHandler
 
     XML::Smart.modify(".ssc/#{type}s/#{basename}.config") { |doc|
       nodes = doc.find("#{type}/state")
-      nodes.delete_at!(0)
-      doc.root.add("state", "removed")
+      if( nodes.first.to_s == "added" )
+        FileUtils.rm "#{type}s/#{basename}"
+        FileUtils.rm ".ssc/#{type}s/#{basename}.config"
+      else
+        nodes.delete_at!(0)
+        doc.root.add("state", "removed")
+      end
     }
     FileUtils.rm filename
   end
