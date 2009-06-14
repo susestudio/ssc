@@ -33,11 +33,15 @@ def get_appliance_from_args_or_config args
   appliance
 end
 
+def base_url
+  "http://#{$server_name}/#{$api_prefix}"
+end
+
 class Request
   attr_accessor :method, :call, :data
 
   def go
-    uri = URI.parse("http://#{$server_name}/#{$api_prefix}/#{call}")
+    uri = URI.parse("#{base_url}/#{call}")
     request = nil
     if method == "GET"
       request = Net::HTTP::Get.new(uri.request_uri)
@@ -324,9 +328,9 @@ class CheckoutHandler < CommandHandler
       path = "#{id}/files/#{filename}"
       puts "  Downloading '#{filename}'"
 
-      download_file "http://#{$server_name}/#{$api_prefix}/files/#{fileid}/data", path
+      download_file "#{base_url}/files/#{fileid}/data", path
       FileUtils.cp path, "#{id}/.ssc/files/#{filename}.orig"
-      download_file "http://#{$server_name}/#{$api_prefix}/files/#{fileid}", "#{id}/.ssc/files/#{filename}.config"
+      download_file "#{base_url}/files/#{fileid}", "#{id}/.ssc/files/#{filename}.config"
       XML::Smart.modify("#{id}/.ssc/files/#{filename}.config") do |doc|
         node = doc.find("/file").first
         node.add("state", "synched")
@@ -346,9 +350,9 @@ class CheckoutHandler < CommandHandler
       path = "#{id}/rpms/#{filename}"
       puts "  Downloading '#{filename}'"
       
-      download_file "http://#{$server_name}/#{$api_prefix}/rpms/#{fileid}/data", path
+      download_file "#{base_url}/rpms/#{fileid}/data", path
       FileUtils.cp path, "#{id}/.ssc/rpms/#{filename}.orig"
-      download_file "http://#{$server_name}/#{$api_prefix}/rpms/#{fileid}", "#{id}/.ssc/rpms/#{filename}.config"
+      download_file "#{base_url}/rpms/#{fileid}", "#{id}/.ssc/rpms/#{filename}.config"
       XML::Smart.modify("#{id}/.ssc/rpms/#{filename}.config") do |doc|
         node = doc.find("/rpm").first
         node.add("state", "synched")
@@ -485,7 +489,7 @@ class CheckoutHandler < CommandHandler
         id = xml.find("rpm/id").first.to_s unless xml.find("rpm/id").length == 0
         if id
           FileUtils.cp "rpms/#{filename}", ".ssc/rpms/#{filename}.orig"
-          download_file "http://#{$server_name}/#{$api_prefix}/rpms/#{id}", ".ssc/rpms/#{filename}.config"
+          download_file "#{base_url}/rpms/#{id}", ".ssc/rpms/#{filename}.config"
         end
       elsif (status == "removed")
         puts "Removing #{filename}"
@@ -503,7 +507,7 @@ class CheckoutHandler < CommandHandler
           id = config.find("rpm/id").first.to_s
           puts "Updating #{filename}"
           `curl -u #{$username}:#{$password} -XPUT -F\"file=@#{"rpms/" + filename}\" http://#{$username}:#{$password}@#{$server_name}/#{$api_prefix}/rpms/#{id}/data 2> /dev/null`
-          download_file "http://#{$server_name}/#{$api_prefix}/rpms/#{id}", ".ssc/rpms/#{filename}.config"
+          download_file "#{base_url}/rpms/#{id}", ".ssc/rpms/#{filename}.config"
         end
       end
     end
@@ -520,7 +524,7 @@ class CheckoutHandler < CommandHandler
         id = xml.find("file/id").first.to_s unless xml.find("file/id").length == 0
         if id
           FileUtils.cp "files/#{filename}", ".ssc/files/#{filename}.orig"
-          download_file "http://#{$server_name}/#{$api_prefix}/files/#{id}", ".ssc/files/#{filename}.config"
+          download_file "#{base_url}/files/#{id}", ".ssc/files/#{filename}.config"
         end
       elsif (status == "removed")
         puts "Removing #{filename}"
@@ -538,7 +542,7 @@ class CheckoutHandler < CommandHandler
           id = config.find("file/id").first.to_s
           puts "Updating #{filename}"
           `curl -u #{$username}:#{$password} -XPUT -F\"file=@#{"files/" + filename}\" http://#{$username}:#{$password}@#{$server_name}/#{$api_prefix}/files/#{id}/data 2> /dev/null`
-          download_file "http://#{$server_name}/#{$api_prefix}/files/#{id}", ".ssc/files/#{filename}.config"
+          download_file "#{base_url}/files/#{id}", ".ssc/files/#{filename}.config"
         end
       end
     end
