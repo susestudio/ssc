@@ -1,6 +1,8 @@
 #!/usr/bin/ruby
 
+require 'rubygems'
 require 'net/http'
+require 'net/netrc'
 require 'xml/smart'
 require 'cgi'
 require 'fileutils'
@@ -42,8 +44,6 @@ def base_url
   "http://#{$server_name}/#{$api_prefix}"
 end
 
-
-
 opt = OptionParser.new
 opt.separator("Options")
 opt.on( "-s", "--server", "=HOST",
@@ -63,6 +63,13 @@ end
 opt.on( "-v", "--version",  "Print the version") do |v|
   puts "ssc #{version} - A command line interface to SUSE Studio"
   exit 0
+end
+
+# Try to get credentials from .netrc
+rc = Net::Netrc.locate($server_name)
+if $username.empty? and $password.empty? and rc
+  $username = rc.login
+  $password = rc.password
 end
 
 
