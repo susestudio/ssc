@@ -51,7 +51,7 @@ class BuildHandler < CommandHandler
       res << xml.find("/running_build/state").first.to_s
       res << ", #{xml.find("/running_build/percent").first.to_s}% done - #{xml.find("/running_build/message").first.to_s} (#{xml.find("/running_build/time_elapsed").first.to_s}s elapsed)" unless xml.find("/running_build/state").first.to_s == "error"
       puts res
-      exit 0 unless follow
+      exit 0 if !follow or xml.find("/running_build/state").first.to_s != "running"
       sleep 5
     end
   end
