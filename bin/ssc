@@ -44,24 +44,6 @@ end
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 opt = OptionParser.new
 opt.separator("Options")
 opt.on( "-s", "--server", "=HOST",
