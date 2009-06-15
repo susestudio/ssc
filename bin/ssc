@@ -12,6 +12,7 @@ $LOAD_PATH << "#{File.dirname(__FILE__)}/../lib"
 require 'appliancehandler.rb'
 require 'buildhandler.rb'
 require 'checkouthandler.rb'
+require 'filehandler.rb'
 
 
 $server_name="susestudio.com"
@@ -124,6 +125,9 @@ elsif ARGV.include?("add")
 elsif ARGV.include?("rm") || ARGV.include?("remove")
   opt.banner = "Usage: ssc [options] remove FILE"
   opt.separator("Remove a file from the checkout.")
+elsif ARGV.include?("sf") || ARGV.include?("showfile")
+  opt.banner = "Usage: ssc [options] showfileFILE"
+  opt.separator("Show information on a file.")
 else
   opt.banner = "Usage: ssc [options] COMMAND [command-options]"
   opt.separator("SUSE Studio command line client.")
@@ -152,6 +156,7 @@ else
   opt.separator("      commit,ci\t\t\t     Commit changes to the appliance")
   opt.separator("      add\t\t\t     Add a file to the checkout")
   opt.separator("      rm\t\t\t     Remove a file from the checkout")
+  opt.separator("      showfile,sf\t\t\t     Show metainformation on a file")
   opt.separator("\n")
 end
 
@@ -224,6 +229,9 @@ elsif cmd == "add"
 
 elsif cmd == "remove" or cmd == "rm"
   CheckoutHandler.remove ARGV
+
+elsif cmd == "showfile" or cmd == "sf"
+    FileHandler.show_file ARGV
 
 else
   STDERR.puts "Unknown command: #{cmd}\n"
