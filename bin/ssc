@@ -90,6 +90,8 @@ elsif ARGV.include?("lrb") || ARGV.include?("listrunningbuilds")
 elsif ARGV.include?("srb") || ARGV.include?("showrunningbuild")
   opt.banner = "Usage: ssc [options] showrunningbuild ID"
   opt.separator("Show the status of a running build.")
+  opt.separator("\n")
+  opt.separator("Command options:")
   opt.on( "-f", "--follow","Follow the progress of the build") do |f|
     config[:follow] = f
   end
@@ -108,6 +110,8 @@ elsif ARGV.include?("db") || ARGV.include?("deletebuild")
 elsif ARGV.include?("co") || ARGV.include?("checkout")
   opt.banner = "Usage: ssc [options] checkout APPLIANCE"
   opt.separator("Checkout an appliance.")
+  opt.separator("\n")
+  opt.separator("Command options:")
   opt.on( "-i", "--download-images","Download images of the appliance") do |i|
     config[:images] = i
   end
@@ -128,7 +132,15 @@ elsif ARGV.include?("sf") || ARGV.include?("showfile")
   opt.separator("Show information on an overlay  file.")
 elsif ARGV.include?("mf") || ARGV.include?("modifyfile")
   opt.banner = "Usage: ssc [options] modifyfile FILE [command-options]"
-  opt.separator("Show information on an overlay  file.")
+  opt.separator("Modify metadata of an overlay  file.")
+  opt.separator("\n")
+  opt.separator("Command options:")
+  opt.on( "-f", "--filename","=FILENAME", "The filename of the overlay file") { |f| config["filename"] = f }
+  opt.on( "-p", "--path","=PATH", "The path of the overlay file") { |f| config["path"] = f }
+  opt.on( "-o", "--owner","=OWNER", "The owner of the overlay file") { |o| config["owner"] = o }
+  opt.on( "-g", "--group","=GROUP", "The group of the overlay file") { |g| config["group"] = g }
+  opt.on( "-P", "--permissions","=PERMISSIONS", "The permissions of the overlay file") { |p| config["permissions"] = p }
+  opt.on( "-e", "--enabled","=ENABLED", "Set to 1 to enable or to 0 to disable the overlay file") { |e| config[:enabled] = e }
 else
   opt.banner = "Usage: ssc [options] COMMAND [command-options]"
   opt.separator("SUSE Studio command line client.")
