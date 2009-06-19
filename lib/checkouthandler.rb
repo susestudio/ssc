@@ -108,6 +108,9 @@ class CheckoutHandler < CommandHandler
             modified_files << file
             show_files = true
           end
+        elsif status == "modified"
+          modified_files << file
+          show_files = true
         end
       else
           unknown_files << file
@@ -313,7 +316,7 @@ class CheckoutHandler < CommandHandler
         FileUtils.rm ".ssc/#{type}s/#{basename}.config"
       else
         nodes.delete_at!(0)
-        doc.root.add("state", "removed")
+        doc.find(type).first.add("state", "removed")
       end
     }
     FileUtils.rm filename

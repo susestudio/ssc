@@ -68,8 +68,10 @@ class FileHandler < CommandHandler
       end
 
       if modified
-        doc.find("file/state").delete_at!(0) if doc.find("file/state").length > 0 and doc.find("file").first.to_s != "added"
-        doc.find("file").first.add("state", "modified")
+        if doc.find("file/state").length > 0 and doc.find("file").first.to_s != "added"
+          doc.find("file/state").delete_at!(0)
+          doc.find("file").first.add("state", "modified")
+        end
       else
         STDERR.puts "You need to specify an attribute to modify."
         exit 1
