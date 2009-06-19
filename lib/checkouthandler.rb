@@ -3,7 +3,7 @@
 require 'commandhandler'
 
 class CheckoutHandler < CommandHandler
-  def self.checkout args, images
+  def self.checkout args, config
     appliance = get_appliance_from_args_or_config args
     # Get appliance
     r = Request.new
@@ -70,7 +70,7 @@ class CheckoutHandler < CommandHandler
       end
     end
 
-    if images
+    if config[:images]
       appliancexml.find("appliance/builds/build").each do |build|
         url = build.find("download_url").first.to_s
         puts "  Downloading image '#{File.basename(url)}'"

@@ -19,10 +19,8 @@ $server_name="susestudio.com"
 $api_prefix="api/v1/user"
 $username=""
 $password=""
-force = false
-follow = false
-images = false
 version="0.1"
+config = Hash.new
 
 def get_appliance_from_args_or_config args
   if args
@@ -72,7 +70,7 @@ if ARGV.include?("ba") || ARGV.include?("buildappliance")
   opt.separator("\n")
   opt.separator("Command options:")
   opt.on( "-f", "--force","Force building the appliance even if it overwrites a build") do |v|
-    force = v
+    config[:force] = v
   end
 elsif ARGV.include?("la") || ARGV.include?("listappliances")
   opt.banner = "Usage: ssc [options] listappliances"
@@ -93,7 +91,7 @@ elsif ARGV.include?("srb") || ARGV.include?("showrunningbuild")
   opt.banner = "Usage: ssc [options] showrunningbuild ID"
   opt.separator("Show the status of a running build.")
   opt.on( "-f", "--follow","Follow the progress of the build") do |f|
-    follow = f
+    config[:follow] = f
   end
 elsif ARGV.include?("lb") || ARGV.include?("listbuilds")
   opt.banner = "Usage: ssc [options] listbuilds APPLIANCE"
@@ -111,7 +109,7 @@ elsif ARGV.include?("co") || ARGV.include?("checkout")
   opt.banner = "Usage: ssc [options] checkout APPLIANCE"
   opt.separator("Checkout an appliance.")
   opt.on( "-i", "--download-images","Download images of the appliance") do |i|
-    images = i
+    config[:images] = i
   end
 elsif ARGV.include?("st") || ARGV.include?("status")
   opt.banner = "Usage: ssc [options] status"
@@ -126,8 +124,11 @@ elsif ARGV.include?("rm") || ARGV.include?("remove")
   opt.banner = "Usage: ssc [options] remove FILE"
   opt.separator("Remove a file from the checkout.")
 elsif ARGV.include?("sf") || ARGV.include?("showfile")
-  opt.banner = "Usage: ssc [options] showfileFILE"
-  opt.separator("Show information on a file.")
+  opt.banner = "Usage: ssc [options] showfile FILE"
+  opt.separator("Show information on an overlay  file.")
+elsif ARGV.include?("mf") || ARGV.include?("modifyfile")
+  opt.banner = "Usage: ssc [options] modifyfile FILE [command-options]"
+  opt.separator("Show information on an overlay  file.")
 else
   opt.banner = "Usage: ssc [options] COMMAND [command-options]"
   opt.separator("SUSE Studio command line client.")
@@ -155,8 +156,9 @@ else
   opt.separator("      status,st\t\t\t     Show the status of the checkout")
   opt.separator("      commit,ci\t\t\t     Commit changes to the appliance")
   opt.separator("      add\t\t\t     Add a file to the checkout")
-  opt.separator("      rm\t\t\t     Remove a file from the checkout")
-  opt.separator("      showfile,sf\t\t\t     Show metainformation on a file")
+  opt.separator("      remove,rm\t\t\t     Remove a file from the checkout")
+  opt.separator("      showfile,sf\t\t\t     Show metainformation on an overlay file")
+  opt.separator("      modifyfile,mf\t\t\t     Edit metainformation of an overlay file")
   opt.separator("\n")
 end
 
@@ -195,13 +197,13 @@ elsif cmd == "listtemplates" or cmd =="lt"
   ApplianceHandler.template_sets
 
 elsif cmd == "buildappliance" or cmd =="ba"
-  BuildHandler.build_appliance ARGV, force
+  BuildHandler.build_appliance ARGV, config
 
 elsif cmd == "listrunningbuilds" or cmd =="lrb"
   BuildHandler.list_running_builds ARGV
 
 elsif cmd == "showrunningbuild" or cmd =="srb"
-  BuildHandler.show_running_build ARGV, follow
+  BuildHandler.show_running_build ARGV, config
 
 elsif cmd == "listbuilds" or cmd =="lb"
   BuildHandler.list_builds ARGV
@@ -216,7 +218,7 @@ elsif cmd == "deletebuild" or cmd =="db"
   BuildHandler.delete_build ARGV
 
 elsif cmd == "checkout" or cmd =="co"
-  CheckoutHandler.checkout ARGV, images
+  CheckoutHandler.checkout ARGV, config
 
 elsif cmd == "status" or cmd =="st"
   CheckoutHandler.status
@@ -232,6 +234,9 @@ elsif cmd == "remove" or cmd == "rm"
 
 elsif cmd == "showfile" or cmd == "sf"
     FileHandler.show_file ARGV
+
+elsif cmd == "modifyfile" or cmd == "mf"
+    FileHandler.modify_file ARGV, config
 
 else
   STDERR.puts "Unknown command: #{cmd}\n"

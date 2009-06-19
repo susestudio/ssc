@@ -3,12 +3,12 @@
 require 'commandhandler'
 
 class BuildHandler < CommandHandler
-  def self.build_appliance args, force
+  def self.build_appliance args, config
     appliance = get_appliance_from_args_or_config args
     r = Request.new
     r.method = "POST"
     r.call = "running_builds?appliance_id=#{appliance}"
-    r.call += "&force=1" if force
+    r.call += "&force=1" if config[:force]
     s = doRequest(r)
 
     xml = XML::Smart.string( s )
@@ -33,7 +33,7 @@ class BuildHandler < CommandHandler
     puts res unless res.empty?
   end
 
-  def self.show_running_build args, follow
+  def self.show_running_build args, config
     build = args[1]
     if build.nil? || build.empty?
       STDERR.puts "You need to specify a running build."
@@ -51,7 +51,7 @@ class BuildHandler < CommandHandler
       res << xml.find("/running_build/state").first.to_s
       res << ", #{xml.find("/running_build/percent").first.to_s}% done - #{xml.find("/running_build/message").first.to_s} (#{xml.find("/running_build/time_elapsed").first.to_s}s elapsed)" unless xml.find("/running_build/state").first.to_s == "error"
       puts res
-      exit 0 if !follow or xml.find("/running_build/state").first.to_s != "running"
+      exit 0 if !config[:follow] or xml.find("/running_build/state").first.to_s != "running"
       sleep 5
     end
   end

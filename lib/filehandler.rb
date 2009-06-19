@@ -11,12 +11,10 @@ class FileHandler < CommandHandler
     end
     path = File.expand_path(filename)
     basename = File.basename(path)
-    if path =~ /.*\/rpms\/#{basename}/
-      type = "rpm"
-    elsif path =~ /.*\/files\/#{basename}/
+    if path =~ /.*\/files\/#{basename}/
       type = "file"
     else
-      STDERR.puts "This command can only be invoked on files in /rpms and /files."
+      STDERR.puts "This command can only be invoked on overlay files in /files."
       return 1
     end
     unless File.exists?(".ssc/#{type}s/#{basename}.config")
@@ -39,5 +37,9 @@ class FileHandler < CommandHandler
         puts "Size:\t\t#{doc.find("file/size").first.to_s}"
       end
     }
+  end
+
+  def self.modify_file args
+    
   end
 end
