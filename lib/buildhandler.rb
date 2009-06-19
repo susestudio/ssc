@@ -3,6 +3,17 @@
 require 'commandhandler'
 
 class BuildHandler < CommandHandler
+
+  def self.handle_error s
+    xml = XML::Smart.string(s)
+    if xml.find("/error/code").length > 0 && xml.find("/error/code").first.to_s == "image_already_exists"
+      STDERR.puts "This image has alread been build (force overwrite with -f)."
+      exit 1
+    else
+      super s
+    end
+  end
+
   def self.build_appliance args, config
     appliance = get_appliance_from_args_or_config args
     r = Request.new
