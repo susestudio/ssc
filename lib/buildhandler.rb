@@ -16,10 +16,9 @@ class BuildHandler < CommandHandler
 
   def self.build_appliance args, config
     appliance = get_appliance_from_args_or_config args
-    r = Request.new
-    r.method = "POST"
-    r.call = "running_builds?appliance_id=#{appliance}"
-    r.call += "&force=1" if config[:force]
+    call = "running_builds?appliance_id=#{appliance}"
+    call += "&force=1" if config[:force]
+    r = Request.new "POST", call
     s = doRequest(r)
 
     xml = XML::Smart.string( s )
@@ -30,9 +29,7 @@ class BuildHandler < CommandHandler
 
   def self.list_running_builds args
     appliance = get_appliance_from_args_or_config args
-    r = Request.new
-    r.method = "GET"
-    r.call = "running_builds/?appliance_id=#{appliance}"
+    r = Request.new "GET", "running_builds/?appliance_id=#{appliance}"
     s = doRequest(r)
 
     xml = XML::Smart.string( s )
@@ -50,9 +47,7 @@ class BuildHandler < CommandHandler
       STDERR.puts "You need to specify a running build."
       exit 1
     end
-    r = Request.new
-    r.method = "GET"
-    r.call = "running_builds/#{build}"
+    r = Request.new "GET", "running_builds/#{build}"
     while 1
       s = doRequest(r)
 
@@ -69,9 +64,7 @@ class BuildHandler < CommandHandler
 
   def self.list_builds args
     appliance = get_appliance_from_args_or_config args
-    r = Request.new
-    r.method = "GET"
-    r.call = "builds/?appliance_id=#{appliance}"
+    r = Request.new "GET", "builds/?appliance_id=#{appliance}"
     s = doRequest(r)
 
     xml = XML::Smart.string( s )
@@ -92,9 +85,7 @@ class BuildHandler < CommandHandler
       STDERR.puts "You need to specify a build."
       exit 1
     end
-    r = Request.new
-    r.method = "GET"
-    r.call = "builds/#{build}"
+    r = Request.new "GET", "builds/#{build}"
     s = doRequest(r)
 
     xml = XML::Smart.string( s )
@@ -114,9 +105,7 @@ class BuildHandler < CommandHandler
       STDERR.puts "You need to specify a build."
       exit 1
     end
-    r = Request.new
-    r.method = "DELETE"
-    r.call = "running_builds/#{build}"
+    r = Request.new "DELETE", "running_builds/#{build}"
     doRequest(r)
     puts "Success."
   end
@@ -127,9 +116,7 @@ class BuildHandler < CommandHandler
       STDERR.puts "You need to specify a build."
       exit 1
     end
-    r = Request.new
-    r.method = "DELETE"
-    r.call = "builds/#{build}"
+    r = Request.new "DELETE", "builds/#{build}"
     doRequest(r)
     puts "Success."
   end

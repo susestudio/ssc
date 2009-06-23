@@ -4,9 +4,7 @@ require 'commandhandler'
 
 class ApplianceHandler < CommandHandler
   def self.list_appliances
-    r = Request.new
-    r.method = "GET"
-    r.call = "appliances"
+    r = Request.new "GET", "appliances"
     s = doRequest(r)
 
     xml = XML::Smart.string( s )
@@ -26,9 +24,7 @@ class ApplianceHandler < CommandHandler
       STDERR.puts "You need to specify a template."
       exit 1
     end
-    r = Request.new
-    r.method = "POST"
-    r.call = "appliances?clone_from=#{clonefrom}"
+    r = Request.new "POST", "appliances?clone_from=#{clonefrom}"
     s = doRequest(r)
 
     xml = XML::Smart.string( s )
@@ -42,17 +38,13 @@ class ApplianceHandler < CommandHandler
 
   def self.delete_appliance args
     appliance = get_appliance_from_args_or_config args
-    r = Request.new
-    r.method = "DELETE"
-    r.call = "appliances/#{appliance}"
+    r = Request.new "DELETE", "appliances/#{appliance}"
     doRequest(r)
     puts "Success."
   end
 
   def self.template_sets
-    r = Request.new
-    r.method = "GET"
-    r.call = "template_sets"
+    r = Request.new "GET", "template_sets"
     s = doRequest(r)
 
     xml = XML::Smart.string( s )

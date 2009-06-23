@@ -6,9 +6,7 @@ class CheckoutHandler < CommandHandler
   def self.checkout args, config
     appliance = get_appliance_from_args_or_config args
     # Get appliance
-    r = Request.new
-    r.method = "GET"
-    r.call = "appliances/#{appliance}"
+    r = Request.new "GET", "appliances/#{appliance}"
     s = doRequest(r)
     appliancexml  =XML::Smart.string( s )
     id = appliancexml.find("appliance/id").first.to_s
@@ -27,9 +25,7 @@ class CheckoutHandler < CommandHandler
     }
 
     # Get files
-    r = Request.new
-    r.method = "GET"
-    r.call = "files/?appliance_id=#{appliance}"
+    r = Request.new "GET", "files/?appliance_id=#{appliance}"
     s = doRequest(r)
 
     filesxml = XML::Smart.string( s )
@@ -49,9 +45,7 @@ class CheckoutHandler < CommandHandler
     end
 
     # Get rpms
-    r = Request.new
-    r.method = "GET"
-    r.call = "rpms?base_system=#{base_system}"
+    r = Request.new "GET", "rpms?base_system=#{base_system}"
     s = doRequest(r)
 
     rpmsxml = XML::Smart.string( s )
@@ -198,7 +192,10 @@ class CheckoutHandler < CommandHandler
 
       if (status == "added")
         puts "Uploading #{filename}"
-        s = `curl -u #{$username}:#{$password} -XPOST -F\"file=@#{"rpms/" + filename}\" http://#{$username}:#{$password}@#{$server_name}/#{$api_prefix}/rpms?base_system=#{base} 2> /dev/null`
+        r = Request.new "POST", "rpms?base_system=#{base}"
+        file = File.new "rpms/" + filename
+        r.set_multipart_data :file =>file
+        s = doRequest(r)
         xml = XML::Smart.string(s)
         id = xml.find("rpm/id").first.to_s unless xml.find("rpm/id").length == 0
         if id
@@ -208,9 +205,7 @@ class CheckoutHandler < CommandHandler
       elsif (status == "removed")
         puts "Removing #{filename}"
         id = config.find("rpm/id").first.to_s
-        r = Request.new
-        r.method = "DELETE"
-        r.call = "rpms/#{id}"
+        r = Request.new "DELETE", "rpms/#{id}"
         doRequest(r)
         FileUtils.rm ".ssc/rpms/#{filename}.orig"
         FileUtils.rm ".ssc/rpms/#{filename}.config"
@@ -220,7 +215,10 @@ class CheckoutHandler < CommandHandler
         if (status == "synched" and md5 != oldmd5)
           id = config.find("rpm/id").first.to_s
           puts "Updating #{filename}"
-          `curl -u #{$username}:#{$password} -XPUT -F\"file=@#{"rpms/" + filename}\" http://#{$username}:#{$password}@#{$server_name}/#{$api_prefix}/rpms/#{id}/data 2> /dev/null`
+          r = Request.new "PUT", "rpms/#{id}/data"
+          file = File.new "rpms/" + filename
+          r.set_multipart_data :file =>file
+          doRequest(r)
           download_file "#{base_url}/rpms/#{id}", ".ssc/rpms/#{filename}.config"
         end
       end
@@ -233,7 +231,10 @@ class CheckoutHandler < CommandHandler
 
       if (status == "added")
         puts "Uploading #{filename}"
-        s = `curl -u #{$username}:#{$password} -XPOST -F\"file=@#{"files/" + filename}\" http://#{$username}:#{$password}@#{$server_name}/#{$api_prefix}/files?appliance_id=#{appliance} 2> /dev/null`
+        r = Request.new "POST", "files?appliance_id=#{appliance}"
+        file = File.new "files/" + filename
+        r.set_multipart_data :file =>file
+        s = doRequest(r)
         xml = XML::Smart.string(s)
         id = xml.find("file/id").first.to_s unless xml.find("file/id").length == 0
         if id
@@ -243,9 +244,7 @@ class CheckoutHandler < CommandHandler
       elsif (status == "removed")
         puts "Removing #{filename}"
         id = config.find("file/id").first.to_s
-        r = Request.new
-        r.method = "DELETE"
-        r.call = "files/#{id}"
+        r = Request.new "DELETE", "files/#{id}"
         doRequest(r)
         FileUtils.rm ".ssc/files/#{filename}.orig"
         FileUtils.rm ".ssc/files/#{filename}.config"
@@ -255,7 +254,10 @@ class CheckoutHandler < CommandHandler
         if ((status == "synched" or status == "modified") and md5 != oldmd5)
           id = config.find("file/id").first.to_s
           puts "Updating #{filename}"
-          `curl -u #{$username}:#{$password} -XPUT -F\"file=@#{"files/" + filename}\" http://#{$username}:#{$password}@#{$server_name}/#{$api_prefix}/files/#{id}/data 2> /dev/null`
+          r = Request.new "PUT", "files/#{id}/data"
+          file = File.new "files/" + filename
+          r.set_multipart_data :file =>file
+          doRequest(r)
           download_file "#{base_url}/files/#{id}", ".ssc/files/#{filename}.config"
         end
       end
