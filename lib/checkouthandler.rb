@@ -38,10 +38,7 @@ class CheckoutHandler < CommandHandler
       download_file "#{base_url}/files/#{fileid}/data", path
       FileUtils.cp path, "#{id}/.ssc/files/#{filename}.orig"
       download_file "#{base_url}/files/#{fileid}", "#{id}/.ssc/files/#{filename}.config"
-      XML::Smart.modify("#{id}/.ssc/files/#{filename}.config") do |doc|
-        node = doc.find("/file").first
-        node.add("state", "synched")
-      end
+      add_state_node "#{id}/.ssc/files/#{filename}.config", "/file", "synched"
     end
 
     # Get rpms
@@ -58,10 +55,7 @@ class CheckoutHandler < CommandHandler
       download_file "#{base_url}/rpms/#{fileid}/data", path
       FileUtils.cp path, "#{id}/.ssc/rpms/#{filename}.orig"
       download_file "#{base_url}/rpms/#{fileid}", "#{id}/.ssc/rpms/#{filename}.config"
-      XML::Smart.modify("#{id}/.ssc/rpms/#{filename}.config") do |doc|
-        node = doc.find("/rpm").first
-        node.add("state", "synched")
-      end
+      add_state_node "#{id}/.ssc/rpms/#{filename}.config", "/rpm", "synched"
     end
 
     if config[:images]
@@ -201,6 +195,7 @@ class CheckoutHandler < CommandHandler
         if id
           FileUtils.cp "rpms/#{filename}", ".ssc/rpms/#{filename}.orig"
           download_file "#{base_url}/rpms/#{id}", ".ssc/rpms/#{filename}.config"
+          add_state_node ".ssc/rpms/#{filename}.config", "/rpm", "synched"
         end
       elsif (status == "removed")
         puts "Removing #{filename}"
@@ -220,6 +215,8 @@ class CheckoutHandler < CommandHandler
           r.set_multipart_data :file =>file
           doRequest(r)
           download_file "#{base_url}/rpms/#{id}", ".ssc/rpms/#{filename}.config"
+          add_state_node ".ssc/rpms/#{filename}.config", "/rpm", "synched"
+          FileUtils.cp "rpms/#{filename}", ".ssc/rpms/#{filename}.orig"
         end
       end
     end
@@ -240,6 +237,7 @@ class CheckoutHandler < CommandHandler
         if id
           FileUtils.cp "files/#{filename}", ".ssc/files/#{filename}.orig"
           download_file "#{base_url}/files/#{id}", ".ssc/files/#{filename}.config"
+          add_state_node ".ssc/files/#{filename}.config", "/file", "synched"
         end
       elsif (status == "removed")
         puts "Removing #{filename}"
@@ -259,6 +257,8 @@ class CheckoutHandler < CommandHandler
           r.set_multipart_data :file =>file
           doRequest(r)
           download_file "#{base_url}/files/#{id}", ".ssc/files/#{filename}.config"
+          add_state_node ".ssc/files/#{filename}.config", "/file", "synched"
+          FileUtils.cp "rpms/#{filename}", ".ssc/rpms/#{filename}.orig"
         end
       end
     end
@@ -322,6 +322,13 @@ class CheckoutHandler < CommandHandler
       end
     }
     FileUtils.rm filename
+  end
+
+  def self.add_state_node file, path, state
+    XML::Smart.modify(file) do |doc|
+      node = doc.find(path).first
+      node.add("state", state)
+    end
   end
 
 end
