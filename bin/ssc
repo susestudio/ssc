@@ -3,4 +3,4 @@
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 
 require 'ssc'
-x= SSC::Base.run(ARGV)
+x= SSC::Base.new(ARGV).run
