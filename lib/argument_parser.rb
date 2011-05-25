@@ -27,6 +27,8 @@ module SSC
         Package
       when 'file'
         File
+      when 'template'
+        Template
       else
         raise UnkownOptionError
       end

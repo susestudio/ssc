@@ -9,12 +9,12 @@ module SSC
   class Base
     def initialize(args)
       @args= ArgumentParser.new(args)
-      @klass= @args.klass.new
-      @config= get_config
+      @klass= @args.klass
+      @options= get_config.merge(@args.options)
     end
 
     def run
-      @klass.send(@args.action, @config.merge(@args.options))
+      @klass.new(@options).send(@args.action)
     end
 
     private

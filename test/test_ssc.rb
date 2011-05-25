@@ -10,18 +10,19 @@ class TestSsc < Test::Unit::TestCase
     end
 
     should "initialize handler class correctly" do
-      assert_equal @client.instance_variable_get('@klass').class, 
-        SSC::Handler::Appliance
+      assert_equal SSC::Handler::Appliance, 
+        @client.instance_variable_get('@klass')
     end
 
     should "initialize @args with an ArgumentParser object" do
       args= @client.instance_variable_get('@args')
-      assert_equal args.class, SSC::ArgumentParser
+      assert_equal SSC::ArgumentParser, args.class
     end
 
     should "initialize @config with the config from .sscrc" do
-      config= @client.instance_variable_get('@config')
-      assert_equal config, {'username' => 'user', 'password' => 'pass'}
+      options= @client.instance_variable_get('@options')
+      assert_equal('user', options['username'])
+      assert_equal('pass', options['password'])
     end
 
   end
