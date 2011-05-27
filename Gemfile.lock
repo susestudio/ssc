@@ -1,0 +1,37 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    activemodel (3.0.0)
+      activesupport (= 3.0.0)
+      builder (~> 2.1.2)
+      i18n (~> 0.4.1)
+    activeresource (3.0.0)
+      activemodel (= 3.0.0)
+      activesupport (= 3.0.0)
+    activesupport (3.0.0)
+    builder (2.1.2)
+    git (1.2.5)
+    i18n (0.4.1)
+    jeweler (1.6.0)
+      bundler (~> 1.0.0)
+      git (>= 1.2.5)
+      rake
+    mocha (0.9.12)
+    rake (0.8.7)
+    rcov (0.9.9)
+    shoulda (2.11.3)
+    studio_api (3.1.1)
+      activeresource (>= 2.3.8)
+      xml-simple (>= 1.0.0)
+    xml-simple (1.0.15)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bundler (~> 1.0.0)
+  jeweler (~> 1.6.0)
+  mocha
+  rcov
+  shoulda
+  studio_api (>= 3.1.1)
