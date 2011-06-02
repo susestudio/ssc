@@ -10,12 +10,15 @@ class TestHandlerHelper < Test::Unit::TestCase
       @objekt= TestObject.new
     end
 
-    context "#authorize" do
+    context "#connect" do
       should "create connection and configure StudioApi to use it" do
         mock_connection= mock('connection')
-        StudioApi::Connection.expects(:new).with('user', 'pass', 'https://susestudio.com/api/v1/user').returns(mock_connection)
+        StudioApi::Connection.expects(:new)
+          .with('user', 'pass', 'https://susestudio.com/api/v1/user', 
+                {:proxy => 'proxy'})
+          .returns(mock_connection)
         StudioApi::Util.expects(:configure_studio_connection).with(mock_connection)
-        @objekt.authorize('user', 'pass')
+        @objekt.connect('user', 'pass', {:proxy => 'proxy', :another_option => 'value'})
       end
     end
   end

@@ -5,7 +5,7 @@ class TestTemplateHandler < Test::Unit::TestCase
     context "#list" do
       setup do
         @handler= SSC::Handler::Template.new()
-        @handler.stubs(:authorize)
+        @handler.stubs(:connect)
       end
 
       should "call .find(:all) on StudioApi::TemplateSet" do

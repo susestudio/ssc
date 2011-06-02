@@ -6,16 +6,16 @@ module SSC
 
       def initialize(options= {})
         @options= options
-        authorize(options[:username], 
-                  options[:password])
+        connect(options[:username], 
+                options[:password])
       end
-      
+
       def list
         templates= StudioApi::TemplateSet.find(:all)
         templates.collect {|template| template.name}
       end
 
-      def get(name)
+      def show(name)
         template_set= StudioApi::TemplateSet.find(name)
         out = [template_set.name+' : '+template_set.description]
         out += template_set.template.collect do |appliance| 
