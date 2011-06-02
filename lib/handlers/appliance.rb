@@ -7,7 +7,6 @@ module SSC
       end
     
       def create
-        puts @options.inspect
       end
       
       def list

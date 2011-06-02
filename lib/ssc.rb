@@ -14,10 +14,20 @@ module SSC
     end
 
     def run
-      @klass.new(@options).send(@args.action)
+      out= if @args.action_arguments.empty?
+        @klass.new(@options).send(@args.action)
+      else
+        @klass.new(@options).send(@args.action, *@args.action_arguments)
+      end
+
+      print(out)
     end
 
     private
+
+    def print(output)
+      puts output
+    end
 
     def get_config
       config= if File.exist?(File.join(Dir.pwd, '.sscrc'))
@@ -25,7 +35,7 @@ module SSC
       else
         ""
       end
-      config = YAML::load(config) || {}
+      config = (YAML::load(config) || {}).symbolize_keys
     end
   end
 end

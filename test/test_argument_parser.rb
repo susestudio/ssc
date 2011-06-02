@@ -5,8 +5,7 @@ class TestArgumentParser < Test::Unit::TestCase
   
     context "when arguments are good" do
       setup do
-        @parser= SSC::ArgumentParser.new(['appliance', 'create', '--option', 'value', 
-                                     '-o', 'v', '--flag', '-f'])
+        @parser= SSC::ArgumentParser.new(['appliance', 'create', 'act_arg1', 'act_arg2', '--option', 'value', '-o', 'v', '--flag', '-f'])
       end
 
       should "set @klass to Appliance" do
@@ -22,6 +21,11 @@ class TestArgumentParser < Test::Unit::TestCase
                       :o      => 'v',
                       :flag   => nil,
                       :f      => nil }, @parser.options)
+      end
+
+      should "set @action_arguments to argument array" do
+	assert_equal(['act_arg1', 'act_arg2'], 
+		     @parser.action_arguments)
       end
 
     end
@@ -43,11 +47,4 @@ class TestArgumentParser < Test::Unit::TestCase
     end
   end
 
-  context "when options are invalid" do
-    should "raise UnkownOptionError" do
-      assert_raise(SSC::UnkownOptionError) do
-        SSC::ArgumentParser.new(['appliance', 'create', 'blah', 'blah'])
-      end
-    end
-  end
 end

@@ -5,13 +5,21 @@ module SSC
       include Helper
 
       def initialize(options= {})
-        authorize(options['username'], options['password'])
+        @options= options
+        authorize(options[:username], 
+                  options[:password])
       end
       
       def list
         templates= StudioApi::TemplateSet.find(:all)
-        templates.each do |template|
-          puts "#{template.id}: #{template.name}"
+        templates.collect {|template| template.name}
+      end
+
+      def get(name)
+        template_set= StudioApi::TemplateSet.find(name)
+        out = [template_set.name+' : '+template_set.description]
+        out += template_set.template.collect do |appliance| 
+          "#{appliance.appliance_id}: #{appliance.name}"
         end
       end
     end

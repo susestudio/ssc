@@ -7,12 +7,12 @@ module SSC
   
     include Handler
 
-    attr_reader :klass, :action, :options
+    attr_reader :klass, :action, :options, :action_arguments
 
     def initialize(args)
-      @klass= get_class(args[0])
-      @action= get_action(args[1])
-      @options= get_options(args[2..-1])
+      @klass  = get_class(args[0])
+      @action = get_action(args[1])
+      @action_arguments, @options = get_options(args[2..-1])
     end
 
     private
@@ -43,7 +43,7 @@ module SSC
     end
 
     def get_options(args)
-      options = {}; last_key= nil
+      options = {}; last_key= nil; action_arguments= []
       args.each do |arg|
         if arg.match(/^-/)
           last_key= arg.gsub(/^-+/, '')
@@ -52,11 +52,11 @@ module SSC
           if last_key
             options.merge!({last_key.to_sym => arg}) 
           else
-            raise UnkownOptionError
+            action_arguments << arg
           end
         end
       end
-      options
+      [action_arguments, options]
     end
   end
 end
