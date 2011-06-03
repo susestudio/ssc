@@ -1,14 +1,6 @@
 module SSC
   module Handler
-    class Template
-
-      include Helper
-
-      def initialize(options= {})
-        @options= options
-        connect(options[:username], 
-                options[:password])
-      end
+    class Template < Base
 
       def list
         templates= StudioApi::TemplateSet.find(:all)

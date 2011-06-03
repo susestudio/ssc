@@ -19,8 +19,8 @@ class TestArgumentParser < Test::Unit::TestCase
       should "set @options to option hash" do
         assert_equal({:option => 'value',
                       :o      => 'v',
-                      :flag   => nil,
-                      :f      => nil }, @parser.options)
+                      :flag   => true,
+                      :f      => true }, @parser.options)
       end
 
       should "set @action_arguments to argument array" do

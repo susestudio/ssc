@@ -1,14 +1,9 @@
+require 'fileutils'
+
 module SSC
   module Handler
-    class Appliance
+    class Appliance < Base
 
-      include Helper
-
-      def initialize(options= {})
-        @options= options
-        connect(@options[:username], @options[:password], options)
-      end
-    
       def create
       end
       

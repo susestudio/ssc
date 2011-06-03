@@ -47,7 +47,7 @@ module SSC
       args.each do |arg|
         if arg.match(/^-/)
           last_key= arg.gsub(/^-+/, '')
-          options.merge!({last_key.to_sym => nil})
+          options.merge!({last_key.to_sym => true})
         else
           if last_key
             options.merge!({last_key.to_sym => arg}) 

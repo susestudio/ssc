@@ -2,10 +2,26 @@ require 'studio_api'
 
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
-module SSC::Handler
-end
+module SSC::Handler; end
 
 require 'helper'
+
+module SSC
+  module Handler
+    class Base
+
+      include Helper
+
+      def initialize(options= {})
+        @options= options
+        connect(@options[:username], 
+                @options[:password], 
+                options)
+      end
+    end
+  end
+end
+
 require 'appliance'
 require 'repository'
 require 'package'

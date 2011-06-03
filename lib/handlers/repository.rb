@@ -1,14 +1,7 @@
 module SSC
   module Handler
-    class Repository
+    class Repository < Base
       
-      include Helper
-
-      def initialize(options = {})
-        @options= options
-        connect(@options[:username], @options[:password], options)
-      end
-
       def search(search_string)
         params= {:filter => search_string}
         params= params.merge({:base_system => @options[:base_system]}) if @options[:base_system]
