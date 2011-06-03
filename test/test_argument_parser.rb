@@ -24,8 +24,8 @@ class TestArgumentParser < Test::Unit::TestCase
       end
 
       should "set @action_arguments to argument array" do
-	assert_equal(['act_arg1', 'act_arg2'], 
-		     @parser.action_arguments)
+        #only one of the arguments must be taken since create take only one argument
+	assert_equal(['act_arg1'], @parser.action_arguments)
       end
 
     end

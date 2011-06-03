@@ -56,7 +56,8 @@ module SSC
           end
         end
       end
-      [action_arguments, options]
+      number_of_arguments= @klass.new.method(@action).arity
+      [action_arguments[0..number_of_arguments], options]
     end
   end
 end
