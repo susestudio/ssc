@@ -25,5 +25,4 @@ end
 require 'appliance'
 require 'repository'
 require 'package'
-require 'file'
 require 'template'
