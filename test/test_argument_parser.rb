@@ -28,6 +28,11 @@ class TestArgumentParser < Test::Unit::TestCase
 	assert_equal(['act_arg1'], @parser.action_arguments)
       end
 
+      should "have the entire list if arity of the method is -1(splat)" do
+        parser= SSC::ArgumentParser.new(['repository', 'add', 'act_arg1', 'act_arg2'])
+        assert_equal(['act_arg1', 'act_arg2'], parser.action_arguments )
+      end
+
     end
   end
 

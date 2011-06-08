@@ -2,11 +2,11 @@ require 'helper'
 
 class TestHandlerRepository < Test::Unit::TestCase
   context "SSC::Handler::Repository" do
+    setup do
+      @handler= SSC::Handler::Repository.new()
+      @handler.stubs(:connect)
+    end
     context "#search" do
-      setup do
-        @handler= SSC::Handler::Repository.new()
-        @handler.stubs(:connect)
-      end
 
       should "call .find(:all, params_hash) on StudioApi::Repository" do
         mock_collection= mock('collection')

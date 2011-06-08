@@ -40,14 +40,6 @@ module SSC
          "Download Url: #{download_url(appliance)}" ]
       end
 
-      def repositories
-        require_appliance_id(@options) do |appliance|
-          appliance.repositories.collect do |repo|
-            "#{repo.name}: #{repo.base_url}"
-          end
-        end
-      end
-
       def installed_software
         require_appliance_id(@options) do |appliance|
           appliance.installed_software.collect do |software|

@@ -57,7 +57,8 @@ module SSC
         end
       end
       number_of_arguments= @klass.new.method(@action).arity
-      [action_arguments[0..number_of_arguments], options]
+      action_arguments= action_arguments[0..number_of_arguments-1] if number_of_arguments != -1
+      [action_arguments, options]
     end
   end
 end
