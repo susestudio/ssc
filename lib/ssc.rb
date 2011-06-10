@@ -14,16 +14,25 @@ module SSC
     end
 
     def run
-      out= if @args.action_arguments.empty?
-        @klass.new(@options).send(@args.action)
-      else
-        @klass.new(@options).send(@args.action, *@args.action_arguments)
+      begin
+        out= if @args.action_arguments.empty?
+          @klass.new(@options).send(@args.action)
+        else
+          @klass.new(@options).send(@args.action, *@args.action_arguments)
+        end
+      rescue ArgumentError
+        puts "Incorrect number of arguments provided"
+        print_usage
       end
 
       print(out)
     end
 
     private
+
+    def print_usage
+      puts "TODO: Write usage file"
+    end
 
     def print(output)
       puts output
