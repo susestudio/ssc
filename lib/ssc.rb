@@ -1,6 +1,7 @@
 module SSC
 end
 
+require 'directory_manager'
 require 'handlers/all'
 require 'argument_parser'
 require 'yaml'

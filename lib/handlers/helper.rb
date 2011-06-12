@@ -36,6 +36,10 @@ module SSC
           end
         end
 
+        def save_locally(type, array)
+          AppDirectoryManager.save(type, array)
+        end
+
       end
 
     end

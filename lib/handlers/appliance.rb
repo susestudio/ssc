@@ -13,19 +13,7 @@ module SSC
         else
           raise "--source_id is required"
         end
-        FileUtils.mkdir(appliance_dir)
-        FileUtils.mkdir(File.join(appliance_dir, 'files'))
-        FileUtils.touch(File.join(appliance_dir, 'repositories'))
-        FileUtils.touch(File.join(appliance_dir, 'software'))
-        File.open(File.join(appliance_dir, '.sscrc'), 'w') do |file|
-          file.write("username: #{@options[:username]}\n"+
-                     "password: #{@options[:password]}\n"+
-                     "appliance_id: #{appliance.id}")
-        end
-        ["Created: ", appliance_dir, 
-         File.join(appliance_dir, 'files'),
-         File.join(appliance_dir, 'repositories'),
-         File.join(appliance_dir, 'software') ]
+        DirectoryManager.create_appliance_directory(appliance_dir, @options[:username], @options[:password], appliance.id)
       end
       
       def list

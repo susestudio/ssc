@@ -11,6 +11,7 @@ module SSC
     class Base
 
       include Helper
+      include DirectoryManager
 
       def initialize(options= {})
         @options= options
