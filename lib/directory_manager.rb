@@ -43,15 +43,23 @@ module SSC
 
       def save_local(data)
         return false if data.nil? || data == []
-        if @local_source
-          File.open(@local_source, 'w') do |f|
+        source= self.class.class_variable_get('@@local_source')
+        if source
+          File.open(source, 'w') do |f|
             f.write(data.join("\n"))
           end
         end
       end
 
       def read_local
-        File.readlines(@local_source) if @local_source
+        source= self.class.class_variable_get('@@local_source')
+        File.readlines(source).collect{|i| i.strip} if source
+      end
+
+      private
+
+      def local_empty?
+        File.read(self.class.class_variable_get('@@local_source')).strip == ""
       end
 
     end

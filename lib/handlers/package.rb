@@ -18,13 +18,15 @@ module SSC
 
       def list(type)
         raise "installed | selected package only" unless ['installed', 'selected'].include?(type)
-        if @options[:r] || @options[:remote]
+        if @options[:r] || @options[:remote] || local_empty?
           require_appliance_id(@options) do |appliance|
             params= @options[:build_id]? {} : @options.slice(:build_id)
             software= appliance.send("#{type}_software")
-            save_local software.collect do |package|
+            formatted_software= software.collect do |package|
               package.name + (package.version ? ( ' v'+package.version ) : "")
             end
+            save_local(formatted_software) if type == "installed"
+            formatted_software
           end
         else
           read_local

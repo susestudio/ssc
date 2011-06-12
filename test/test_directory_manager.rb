@@ -3,7 +3,7 @@ require 'fileutils'
 
 class TestDirectoryManager < Test::Unit::TestCase
   context "SSC::DirectoryManager" do
-  setup do
+    setup do
       class B; include SSC::DirectoryManager; end
       @app_dir= B.create_appliance_directory('test_dir','user','pass',1)
       Dir.chdir('test_dir')
@@ -11,13 +11,30 @@ class TestDirectoryManager < Test::Unit::TestCase
         include SSC::DirectoryManager
         manage 'software'
       end
-      Dir.chdir('..')
-      FileUtils.rm_r('test_dir')
     end
 
-    should "extend and include properly" do
+    should "set the @@local_source variable correctly" do
       assert_equal File.join(@app_dir, 'software'), A.class_variable_get('@@local_source')
     end
 
+    context "#save_local" do
+      should "save data to the local cache file"  do
+        A.new.save_local(['some', 'data'])
+        assert_equal "some\ndata", File.read('software')
+      end
+    end
+
+    context "#read_local" do
+      should "fetch data from local_source" do
+        A.new.save_local(['some', 'data'])
+        assert_equal ['some', 'data'], A.new.read_local
+      end
+    end
+
+  end
+
+  def teardown
+    Dir.chdir('..')
+    FileUtils.rm_r('test_dir')
   end
 end
