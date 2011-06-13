@@ -1,6 +1,10 @@
 module SSC
   module Handler
     class Repository < Base
+
+      include DirectoryManager
+      
+      manage 'repositories'
       
       def search(search_string)
         params= {:filter => search_string}
@@ -13,18 +17,25 @@ module SSC
       end
 
       def list
-        require_appliance_id(@options) do |appliance|
-          appliance.repositories.collect do |repo|
-            "#{repo.id}.) #{repo.name} : #{repo.type} : #{repo.base_system}"
-          end
+        if @options[:r] || @options[:remote] || local_empty?
+          save(require_appliance_id(@options) do |appliance|
+            appliance.repositories.collect do |repo|
+              "#{repo.id}.) #{repo.name} : #{repo.type} : #{repo.base_system}"
+            end
+          end)
+        else
+          read
         end
       end
 
       def add(*repo_ids)
-        out = ["Repositories :"]
-        require_appliance_id(@options) do |appliance|
-          response= appliance.add_repository(repo_ids)
-          response.collect{|repos| repos.name}
+        if @options[:r] || @options[:remote]
+          require_appliance_id(@options) do |appliance|
+            response= appliance.add_repository(repo_ids)
+            response.collect{|repos| repos.name}
+          end
+        else
+          save(repo_ids.collect { |i| "add: #{i}"})
         end
       end
     end

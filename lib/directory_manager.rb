@@ -41,17 +41,18 @@ module SSC
 
     module InstanceMethods
 
-      def save_local(data)
+      def save(data)
         return false if data.nil? || data == []
         source= self.class.class_variable_get('@@local_source')
         if source
-          File.open(source, 'w') do |f|
+          File.open(source, 'a') do |f|
             f.write(data.join("\n"))
           end
         end
+        data
       end
 
-      def read_local
+      def read
         source= self.class.class_variable_get('@@local_source')
         File.readlines(source).collect{|i| i.strip} if source
       end

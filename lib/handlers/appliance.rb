@@ -13,7 +13,11 @@ module SSC
         else
           raise "--source_id is required"
         end
-        DirectoryManager.create_appliance_directory(appliance_dir, @options[:username], @options[:password], appliance.id)
+       appliance_dir= DirectoryManager.create_appliance_directory(appliance_dir, @options[:username], @options[:password], appliance.id)
+        ["Created: ", appliance_dir, 
+         File.join(appliance_dir, 'files'),
+         File.join(appliance_dir, 'repositories'),
+         File.join(appliance_dir, 'software') ]
       end
       
       def list

@@ -25,19 +25,22 @@ module SSC
             formatted_software= software.collect do |package|
               package.name + (package.version ? ( ' v'+package.version ) : "")
             end
-            save_local(formatted_software) if type == "installed"
+            save(formatted_software) if type == "installed"
             formatted_software
           end
         else
-          read_local
+          read
         end
       end
 
-      def add(*repo_ids)
-        out = ["Repositories :"]
-        require_appliance_id(@options) do |appliance|
-          response= appliance.add_repository(repo_ids)
-          response.collect{|repos| repos.name}
+      def add(name)
+        if @options[:r] || @options[:remote]
+          require_appliance_id(@options) do |appliance|
+            response= appliance.add_package(name)
+            ["State: #{response['state']}"]
+          end
+        else
+          save([ "add: #{name}" ])
         end
       end
     end

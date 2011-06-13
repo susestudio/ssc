@@ -17,17 +17,17 @@ class TestDirectoryManager < Test::Unit::TestCase
       assert_equal File.join(@app_dir, 'software'), A.class_variable_get('@@local_source')
     end
 
-    context "#save_local" do
+    context "#save" do
       should "save data to the local cache file"  do
-        A.new.save_local(['some', 'data'])
+        A.new.save(['some', 'data'])
         assert_equal "some\ndata", File.read('software')
       end
     end
 
-    context "#read_local" do
+    context "#read" do
       should "fetch data from local_source" do
-        A.new.save_local(['some', 'data'])
-        assert_equal ['some', 'data'], A.new.read_local
+        A.new.save(['some', 'data'])
+        assert_equal ['some', 'data'], A.new.read
       end
     end
 
