@@ -37,6 +37,27 @@ module SSC
         if @options[:r] || @options[:remote]
           require_appliance_id(@options) do |appliance|
             response= appliance.add_package(name)
+            case response['state']
+            when "fixed"
+              [ "Package Added. State: #{response['state']}" ]
+            when "equal"
+              [ "Package Not Added." ]
+            when "broken"
+              [ "Package Added. State: #{response['state']}.",
+                "Please resolve dependencies" ]
+            else
+              [ "unknown code" ]
+            end
+          end
+        else
+          save([ "add: #{name}" ])
+        end
+      end
+
+      def remove(name)
+        if @options[:r] || @options[:remote]
+          require_appliance_id(@options) do |appliance|
+            response= appliance.remove_package(name)
             ["State: #{response['state']}"]
           end
         else

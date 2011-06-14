@@ -52,6 +52,18 @@ module SSC
         end
       end
 
+      def status
+        require_appliance_id(@options) do |appliance|
+          response= appliance.status
+          case response.state
+          when 'error'
+            ["Error: #{response.issues.issue.text}"]
+          when 'ok'
+            ["Appliance Ok"]
+          end
+        end
+      end
+
       private
 
       def download_url(appliance)
