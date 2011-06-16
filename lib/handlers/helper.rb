@@ -35,11 +35,6 @@ module SSC
             raise "Need the appliance id to run this method"
           end
         end
-
-        def save_locally(type, array)
-          AppDirectoryManager.save(type, array)
-        end
-
       end
 
     end

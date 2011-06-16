@@ -46,7 +46,7 @@ module SSC
         source= self.class.class_variable_get('@@local_source')
         if source
           File.open(source, 'a') do |f|
-            f.write(data.join("\n"))
+            f.write(data.join("\n")+"\n")
           end
         end
         data

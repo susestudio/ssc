@@ -38,6 +38,17 @@ module SSC
           save(repo_ids.collect { |i| "add: #{i}"})
         end
       end
+
+      def remove(*repo_ids)
+        if @options[:r] || @options[:remote]
+          require_appliance_id(@options) do |appliance|
+            response= appliance.remove_repository(repo_ids)
+            ["Removed #{repo_ids.join(", ")}"]
+          end
+        else
+          save([ "remove: #{repo_ids.collect{|i| i.to_i}.inspect}" ])
+        end
+      end
     end
   end
 end

@@ -32,14 +32,6 @@ module SSC
          "Download Url: #{download_url(appliance)}" ]
       end
 
-      def installed_software
-        require_appliance_id(@options) do |appliance|
-          appliance.installed_software.collect do |software|
-            "#{software.name} v#{software.version}"
-          end
-        end
-      end
-
       def destroy
         require_appliance_id(@options) do |appliance|
           if appliance.destroy.code_type == Net::HTTPOK
