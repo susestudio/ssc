@@ -44,12 +44,13 @@ module SSC
       def save(data)
         return false if data.nil? || data == []
         source= self.class.class_variable_get('@@local_source')
+        written= []
         if source
-          File.open(source, 'a') do |f|
-            f.write(data.join("\n")+"\n")
+          File.open(source, 'a+') do |f|
+            written= write_to_file(f, data)
           end
         end
-        data
+        written
       end
 
       def read
@@ -58,6 +59,18 @@ module SSC
       end
 
       private
+
+      def write_to_file(file, data)
+        written= []
+        existing_lines= file.readlines.collect{|i| i.strip}
+        file.write("\n") if existing_lines.last != '' and existing_lines != []
+        data.each do |line|
+          unless existing_lines.include?( line )
+            file.write(line+"\n") 
+            written << line
+          end
+        end
+      end
 
       def local_empty?
         File.read(self.class.class_variable_get('@@local_source')).strip == ""

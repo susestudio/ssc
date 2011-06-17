@@ -46,7 +46,7 @@ module SSC
             ["Removed #{repo_ids.join(", ")}"]
           end
         else
-          save([ "remove: #{repo_ids.collect{|i| i.to_i}.inspect}" ])
+          save(repo_ids.collect { |i| "remove: #{i}"})
         end
       end
     end

@@ -20,7 +20,7 @@ class TestDirectoryManager < Test::Unit::TestCase
     context "#save" do
       should "save data to the local cache file"  do
         A.new.save(['some', 'data'])
-        assert_equal "some\ndata", File.read('software')
+        assert_equal "some\ndata\n", File.read('software')
       end
     end
 
