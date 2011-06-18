@@ -4,6 +4,8 @@ module SSC
   module Handler
     class Appliance < Base
 
+      include DirectoryManager
+
       def create(appliance_name)
         appliance_dir= File.join('.', appliance_name) 
         if @options[:source_id]
@@ -13,7 +15,7 @@ module SSC
         else
           raise "--source_id is required"
         end
-       appliance_dir= DirectoryManager.create_appliance_directory(appliance_dir, @options[:username], @options[:password], appliance.id)
+       appliance_dir= self.class.create_appliance_directory(appliance_dir, @options[:username], @options[:password], appliance.id)
         ["Created: ", appliance_dir, 
          File.join(appliance_dir, 'files'),
          File.join(appliance_dir, 'repositories'),
