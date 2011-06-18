@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "ssc"
   gem.homepage = "http://github.com/rjsvaljean/ssc"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{Command-line client for Suse Studio}
+  gem.description = %Q{Command-line client for Suse Studio}
   gem.email = "rjsvaljean@gmail.com"
   gem.authors = ["Ratan Sebastian"]
   # dependencies defined in Gemfile
