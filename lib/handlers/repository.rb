@@ -17,7 +17,7 @@ module SSC
       end
 
       def list
-        if @options[:r] || @options[:remote] || local_empty?
+        if @not_local || local_empty?
           save(require_appliance_id(@options) do |appliance|
             appliance.repositories.collect do |repo|
               "#{repo.id}.) #{repo.name} : #{repo.type} : #{repo.base_system}"
@@ -29,7 +29,7 @@ module SSC
       end
 
       def add(*repo_ids)
-        if @options[:r] || @options[:remote]
+        if @not_local
           require_appliance_id(@options) do |appliance|
             response= appliance.add_repository(repo_ids)
             response.collect{|repos| repos.name}
@@ -40,7 +40,7 @@ module SSC
       end
 
       def remove(*repo_ids)
-        if @options[:r] || @options[:remote]
+        if @not_local
           require_appliance_id(@options) do |appliance|
             response= appliance.remove_repository(repo_ids)
             ["Removed #{repo_ids.join(", ")}"]

@@ -4,8 +4,6 @@ module SSC
   module Handler
     class Appliance < Base
 
-      include DirectoryManager
-
       def create(appliance_name)
         appliance_dir= File.join('.', appliance_name) 
         if @options[:source_id]

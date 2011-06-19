@@ -18,7 +18,7 @@ module SSC
 
       def list(type)
         raise "installed | selected package only" unless ['installed', 'selected'].include?(type)
-        if @options[:r] || @options[:remote] || local_empty?
+        if @not_local || local_empty?
           require_appliance_id(@options) do |appliance|
             params= @options[:build_id]? {} : @options.slice(:build_id)
             software= appliance.send("#{type}_software")
@@ -34,7 +34,7 @@ module SSC
       end
 
       def add(name)
-        if @options[:r] || @options[:remote]
+        if @not_local
           require_appliance_id(@options) do |appliance|
             response= appliance.add_package(name)
             case response['state']
@@ -55,13 +55,35 @@ module SSC
       end
 
       def remove(name)
-        if @options[:r] || @options[:remote]
+        if @not_local
           require_appliance_id(@options) do |appliance|
             response= appliance.remove_package(name)
             ["State: #{response['state']}"]
           end
         else
           save([ "remove: #{name}" ])
+        end
+      end
+
+      def ban(name)
+        if @not_local
+          require_appliance_id(@options) do |appliance|
+            response= appliance.ban_package(name)
+            response.collect{|key, val| "#{key}: #{val}"}
+          end
+        else
+          save(["remove: #{name}"])
+        end
+      end
+
+      def unban(name)
+        if @not_local
+          require_appliance_id(@options) do |appliance|
+            response= appliance.unban_package(name)
+            response.collect{|key, val| "#{key}: #{val}"}
+          end
+        else
+          save(["remove: #{name}"])
         end
       end
     end

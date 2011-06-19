@@ -22,7 +22,12 @@ module SSC
           @klass.new(@options).send(@args.action, *@args.action_arguments)
         end
       rescue ArgumentError
-        puts "Incorrect number of arguments provided"
+        print "Incorrect number of arguments provided"
+        print_usage
+      rescue Errno::ECONNREFUSED, SocketError
+        print "Could not connect to Suse Studio"
+      rescue UnkownOptionError
+        print "Couldn't parse the arguments provided" 
         print_usage
       end
 
@@ -32,7 +37,7 @@ module SSC
     private
 
     def print_usage
-      puts "TODO: Write usage file"
+      print "TODO: Write usage file"
     end
 
     def print(output)

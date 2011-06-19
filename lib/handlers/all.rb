@@ -18,6 +18,7 @@ module SSC
         connect(@options[:username], 
                 @options[:password], 
                 options)
+        @not_local= true if @options[:r] || @options[:remote]
       end
     end
   end
