@@ -3,9 +3,9 @@ module SSC
     class Repository < Base
 
       include DirectoryManager
-      
+
       manage 'repositories'
-      
+
       def search(search_string)
         params= {:filter => search_string}
         params= params.merge({:base_system => @options[:base_system]}) if @options[:base_system]
@@ -47,6 +47,15 @@ module SSC
           end
         else
           save(repo_ids.collect { |i| "remove: #{i}"})
+        end
+      end
+      
+      def import(url, name) 
+        if @not_local
+          repository= StudioApi::Repository.import(url, name)
+          ["Added #{repository.name}"]
+        else
+          save(["import: #{url}, #{name}"])
         end
       end
     end
