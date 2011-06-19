@@ -72,7 +72,7 @@ module SSC
             response.collect{|key, val| "#{key}: #{val}"}
           end
         else
-          save(["remove: #{name}"])
+          save(["ban: #{name}"])
         end
       end
 
@@ -83,7 +83,7 @@ module SSC
             response.collect{|key, val| "#{key}: #{val}"}
           end
         else
-          save(["remove: #{name}"])
+          save(["unban: #{name}"])
         end
       end
     end
