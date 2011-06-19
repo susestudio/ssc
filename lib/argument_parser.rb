@@ -11,8 +11,10 @@ module SSC
 
     def initialize(args)
       @klass  = get_class(args[0])
-      @action = get_action(args[1])
-      @action_arguments, @options = get_options(args[2..-1])
+      if @klass
+        @action = get_action(args[1])
+        @action_arguments, @options = get_options(args[2..-1])
+      end
     end
 
     private
@@ -29,6 +31,9 @@ module SSC
         File
       when 'template'
         Template
+      when 'help'
+        SSC::Base.print_usage
+        false
       else
         raise UnkownOptionError
       end
