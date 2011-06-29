@@ -22,11 +22,16 @@ module SSC
         else
           @klass.new(@options).send(@args.action, *@args.action_arguments)
         end
-      rescue ArgumentError
-        print "Incorrect number of arguments provided"
+      rescue ArgumentError => error
+        print "Incorrect number or type of arguments provided"
+        print error.to_s
         self.class.print_usage
       rescue Errno::ECONNREFUSED, SocketError
         print "Could not connect to Suse Studio"
+      rescue UnkownFile
+        print "File coudn't be found"
+      rescue ActiveResource::BadRequest
+        print "Request failed. Please try later."
       rescue UnkownOptionError
         print "Couldn't parse the arguments provided" 
         self.class.print_usage

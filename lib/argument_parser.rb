@@ -2,6 +2,8 @@ module SSC
 
   class UnkownOptionError < StandardError
   end
+  class UnkownFile < StandardError
+  end
 
   class ArgumentParser
   

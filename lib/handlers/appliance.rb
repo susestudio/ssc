@@ -1,5 +1,3 @@
-require 'fileutils'
-
 module SSC
   module Handler
     class Appliance < Base

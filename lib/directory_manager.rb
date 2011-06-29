@@ -14,6 +14,7 @@ module SSC
         FileUtils.mkdir_p(File.join(appliance_dir, 'files'))
         FileUtils.touch(File.join(appliance_dir, 'repositories'))
         FileUtils.touch(File.join(appliance_dir, 'software'))
+        FileUtils.touch(File.join(appliance_dir, 'files/.file_list'))
         File.open(File.join(appliance_dir, '.sscrc'), 'w') do |file|
           file.write("username: #{username}\n"+
                      "password: #{password}\n"+
@@ -59,6 +60,23 @@ module SSC
       end
 
       private
+
+      def initiate_file(path)
+        source= self.class.class_variable_get('@@local_source')
+        file_dir, file_name= File.split(path)
+        if File.exist?(path)
+          File.open(path, 'w') do |file|
+            destination= File.join(source, file_name)
+            FileUtils.cp(path, destination)
+          end
+          File.open(File.join(source, '.file_list'), 'a+') do  |f|
+            file_entry= "add: #{file_name}\n  path: #{File.absolute_path(path)}"
+            write_to_file(f, [file_entry])
+          end
+        else
+          raise ArgumentError, "File does not exist"
+        end
+      end
 
       def write_to_file(file, data)
         written= []

@@ -17,7 +17,7 @@ module SSC
       end
 
       def list(type)
-        raise "installed | selected package only" unless ['installed', 'selected'].include?(type)
+        raise ArgumentError, "installed | selected package only" unless ['installed', 'selected'].include?(type)
         if @not_local || local_empty?
           require_appliance_id(@options) do |appliance|
             params= @options[:build_id]? {} : @options.slice(:build_id)
