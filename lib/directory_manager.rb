@@ -24,10 +24,10 @@ module SSC
       end
 
       def manage(local_source)
-        self.class_variable_set('@@appliance_directory', Dir.pwd)
+        self.class.class_variable_set('@@appliance_directory', Dir.pwd)
         if appliance_directory_valid?(Dir.pwd)
           file= File.join(Dir.pwd, local_source)
-          self.class_variable_set('@@local_source', file) if File.exist?(file)
+          self.class.class_variable_set('@@local_source', file) if File.exist?(file)
         end
       end
 
