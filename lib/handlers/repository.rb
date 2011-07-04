@@ -2,9 +2,8 @@ module SSC
   module Handler
     class Repository < Base
 
-      include DirectoryManager
-
-      manage 'repositories'
+      cattr_reader :local_source
+      @@local_source= 'respositories'
 
       def search(search_string)
         params= {:filter => search_string}
