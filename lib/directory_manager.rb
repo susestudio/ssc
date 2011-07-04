@@ -73,6 +73,7 @@ module SSC
             file_entry= "add: #{file_name}\n  path: #{File.absolute_path(path)}"
             write_to_file(f, [file_entry])
           end
+          [ file_dir, file_name, File.join(source, file_name) ]
         else
           raise ArgumentError, "File does not exist"
         end
