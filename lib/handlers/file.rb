@@ -18,6 +18,22 @@ module SSC
           [full_path]
         end
       end
+
+      def show(id)
+        response= StudioApi::File.find(id)
+        [ response.content ]
+      end
+
+      def list
+        require_appliance_id(@options) do |appliance|
+          if @not_local || local_empty?
+            response= StudioApi::File.find(:all, :params => {:appliance_id => appliance.id})
+            response.collect{|file| "#{File.join(file.path, file.filename)}\t file.checksum"}
+          else
+            list_local_files
+          end
+        end
+      end
     end
   end
 end

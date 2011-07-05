@@ -79,6 +79,17 @@ module SSC
         end
       end
 
+      def list_local_files
+        source= self.class.class_variable_get('@@local_source')
+        File.readlines(File.join(source, '.file_list')).collect{|i| i.strip} if source
+      end
+
+      def parse_file_list
+        source= self.class.class_variable_get('@@local_source')
+        file_list= File.read(File.join(source, '.file_list'))
+        YAML::load(file_list)
+      end
+
       def write_to_file(file, data)
         written= []
         existing_lines= file.readlines.collect{|i| i.strip}
