@@ -24,6 +24,21 @@ module SSC
         [ response.content ]
       end
 
+      def diff(id)
+        begin
+          file_content= StudioApi::File.find(id).content
+        rescue
+          ["unable to connect"]
+        end
+
+        begin
+          File.open('.tempfile', 'w') {|f| f.write(file_content)}
+          diff= `diff .tempfile a`
+        rescue
+          ["diff not installed"]
+        end
+      end
+
       def list
         require_appliance_id(@options) do |appliance|
           if @not_local || local_empty?
