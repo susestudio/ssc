@@ -34,7 +34,7 @@ module SSC
             response.collect{|repos| repos.name}
           end
         else
-          save(repo_ids.collect { |i| "add: #{i}"})
+          save(repo_ids.collect { |i| "#{i}: add"})
         end
       end
 
@@ -45,7 +45,7 @@ module SSC
             ["Removed #{repo_ids.join(", ")}"]
           end
         else
-          save(repo_ids.collect { |i| "remove: #{i}"})
+          save(repo_ids.collect { |i| "#{i}: remove"})
         end
       end
       

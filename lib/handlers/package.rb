@@ -50,7 +50,7 @@ module SSC
             end
           end
         else
-          save([ "add: #{name}" ])
+          save([ "#{name}: add" ])
         end
       end
 
@@ -61,7 +61,7 @@ module SSC
             ["State: #{response['state']}"]
           end
         else
-          save([ "remove: #{name}" ])
+          save([ "#{name}: remove" ])
         end
       end
 
