@@ -61,19 +61,17 @@ module SSC
 
       private
 
-      def initiate_file(path)
+      def initiate_file(file_dir, file_name, id)
         source= self.class.class_variable_get('@@local_source')
-        file_dir, file_name= File.split(path)
-        if File.exist?(path)
-          File.open(path, 'w') do |file|
-            destination= File.join(source, file_name)
-            FileUtils.cp(path, destination)
-          end
+        source_file= File.join(file_dir, file_name)
+        destination_file= File.join(source, file_name)
+        if File.exist?(source_file)
+          FileUtils.cp(source_file, destination_file)
           File.open(File.join(source, '.file_list'), 'a+') do  |f|
-            file_entry= "add: #{file_name}\n  path: #{File.absolute_path(path)}"
+            file_entry= "\n#{destination_file}\n  source_dir: #{file_dir}\n  id: #{id}"
             write_to_file(f, [file_entry])
           end
-          [ file_dir, file_name, File.join(source, file_name) ]
+          destination_file
         else
           raise ArgumentError, "File does not exist"
         end

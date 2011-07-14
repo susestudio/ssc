@@ -2,6 +2,15 @@
 
 This is the new version of the the Suse Studio command line client. Built as a part of GSOC 2011.
 
+== Installing ssc
+
+=== Straight from the code
+* Checkout the code
+* In the checked out directory do `rake install`
+
+=== Ocassionally released packaged gems
+* Download 
+
 == Contributing to ssc
  
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet
