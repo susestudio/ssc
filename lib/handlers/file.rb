@@ -30,13 +30,19 @@ module SSC
         end
       end
 
-      def show(id)
-        response= StudioApi::File.find(id)
-        [ response.content ]
+      def show(file)
+        if @not_local
+          id= find_file_id(file)
+          response= StudioApi::File.find(id)
+          [ response.content ]
+        else
+          show_file(file)
+        end
       end
 
-      def diff(id)
+      def diff(file)
         begin
+          id= find_file_id(file)
           file_content= StudioApi::File.find(id).content
         rescue
           ["unable to connect"]
@@ -44,7 +50,7 @@ module SSC
 
         begin
           File.open('.tempfile', 'w') {|f| f.write(file_content)}
-          diff= `diff .tempfile a`
+          diff= `diff .tempfile #{full_local_file_path(file)}`
         rescue
           ["diff not installed"]
         end

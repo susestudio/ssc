@@ -61,10 +61,32 @@ module SSC
 
       private
 
+      def find_file_id(file_name) 
+        file_list= File.join(self.class.class_variable_get('@@local_source'), '.file_list')
+        parsed_file= YAML::load(File.read(file_list))
+        if parsed_file["file_name"]
+          id= parsed_file["file_name"]["id"] 
+        else
+          raise ArgumentError, "file not found"
+        end
+      end
+
+      def full_local_file_path(file)
+        full_path= File.join(self.class.class_variable_get('@@local_source'), file)
+      end
+
+      def show_file(file)
+        full_path= full_local_file_path(file)
+        if File.exist?(full_path)
+          File.read(full_path)
+        else
+          raise ArgumentError, "file not found"
+        end
+      end
+
       def initiate_file(file_dir, file_name, id)
-        source= self.class.class_variable_get('@@local_source')
         source_file= File.join(file_dir, file_name)
-        destination_file= File.join(source, file_name)
+        destination_file= full_local_file_path(file_name)
         if File.exist?(source_file)
           FileUtils.cp(source_file, destination_file)
           File.open(File.join(source, '.file_list'), 'a+') do  |f|
