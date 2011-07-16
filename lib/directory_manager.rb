@@ -42,24 +42,45 @@ module SSC
 
     module InstanceMethods
 
+      # Save data to local storage file
+      # @param (Hash) data The hash with data to be saved. 
+      #	  This methods expects the hash to be properly formatted
+      #	  The format will vary depending on the local source file
+      #	  The strategy for saving will be to merge the `data`hash with
+      #	  the hash obtained by parsing the local source YAML file.
       def save(data)
-        return false if data.nil? || data == []
         source= self.class.class_variable_get('@@local_source')
-        written= []
-        if source
-          File.open(source, 'a+') do |f|
-            written= write_to_file(f, data)
-          end
-        end
+        if File.exist?(source)
+	  parsed_file= YAML::load(File.read(source))
+	  new_data= parsed_file.merge(data)
+	  File.open(source, 'w') { |f| f.write(new_data.to_yaml) }
+	else
+	  raise "Couldn't find the local source file"
+	end
         written
       end
 
-      def read
+      # Reads data from the local storage file
+      # @param (String) section (optional) This is the top-level section
+      #	  of the storage file that is to be read. It can be left blank to 
+      #	  return all sections of the file
+      def read(section = nil)
         source= self.class.class_variable_get('@@local_source')
-        File.readlines(source).collect{|i| i.strip} if source
+	if File.exist?(source)
+	  if section
+	    parsed_file= YAML::load(File.read(source))
+	    parase_file[section].to_yaml
+	  else
+	    parsed_file.to_yaml
+	  end
+	else
+	  raise "Couldn't find the local source file"
+	end
       end
 
       private
+
+
 
       def find_file_id(file_name) 
         file_list= File.join(self.class.class_variable_get('@@local_source'), '.file_list')
