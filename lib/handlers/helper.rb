@@ -1,3 +1,5 @@
+require 'yaml'
+
 module SSC
   module Handler
     module Helper
@@ -11,20 +13,32 @@ module SSC
       end
 
       module ClassMethods
+        def require_authorization
+          config= get_config
+          method_option :username, :type => :string, :required => true, 
+            :default => config["username"]
+          method_option :password, :type => :string, :required => true, 
+            :default => config["password"]
+          method_option :proxy, :type => :string
+          method_option :timeout, :type => :string
+        end
 
+        def get_config
+          YAML::load File.read(File.join('.', '.sscrc'))
+        end
       end
 
       module InstanceMethods
 
-        def connect(user, pass, options = {})
-          connection_options= filter_options(options, [:proxy, :timeout])
-          @connection= StudioApi::Connection.new(user, pass, 'https://susestudio.com/api/v1/user', connection_options)
+        # Establish connection to Suse Studio with username, password
+        def connect(user, pass, connection_options)
+          @connection= StudioApi::Connection.new(user, pass, self.class::API_URL, connection_options)
           StudioApi::Util.configure_studio_connection @connection
         end
 
         def filter_options(options, keys)
           keys.inject({}) do |out, key|
-            options[key]? out.merge!({ key => options[key] }) : out
+            (options.respond_to?(key) && options.send(key)) ? out.merge({ key => options.send(key) }) : out
           end
         end
 
