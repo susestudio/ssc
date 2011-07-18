@@ -23,6 +23,13 @@ module SSC
           method_option :timeout, :type => :string
         end
 
+        def require_appliance_id
+          require_authorization
+          config= get_config
+          method_option :appliance_id, :type => :numeric, :required => true,
+            :default => config["appliance_id"]
+        end
+
         def get_config
           YAML::load File.read(File.join('.', '.sscrc'))
         end
@@ -42,11 +49,19 @@ module SSC
           end
         end
 
-        def require_appliance_id(options)
-          if options[:appliance_id]
-            yield(StudioApi::Appliance.find(options[:appliance_id]))
+        def say_array(array, color= nil)
+          # NOTE
+          # Included for those methods that still return arrays for printing
+          # Can be removed eventually
+          # Still seems to be a nice way to format the text output of methods
+          say array.join("\n"), color
+        end
+
+        def require_appliance
+          if options.appliance_id
+            yield(StudioApi::Appliance.find(options.appliance_id))
           else
-            raise "Need the appliance id to run this method"
+            raise "Unable to find the appliance"
           end
         end
       end
