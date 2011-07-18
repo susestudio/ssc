@@ -149,9 +149,17 @@ module SSC
         end
       end
 
+      # Checks if the local source file has a list 
+      # local_empty? is deprecated and is to be replaced with no_local_list?
+      # @return [Boolean] true if there is no list
       def local_empty?
-        File.read(self.class.class_variable_get('@@local_source')).strip == ""
+        safe_get_source_file do |source|
+          list= YAML::load(source)['list']
+          list == nil || list == {} || list == []
+        end
       end
+      
+      alias :no_local_list? :local_empty?
 
     end
   end

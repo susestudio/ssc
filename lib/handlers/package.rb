@@ -2,34 +2,74 @@ module SSC
   module Handler
     class Package < Base
 
+      # Structure of the 'software' file:
+      #
+      # ---
+      # list:
+      #   installed:
+      #     <name>:
+      #       version: <package.version>
+      #     .
+      #     .
+      #     .
+      #   selected:
+      #     <name>: 
+      #     .
+      #     .
+      #     .
+      # add:
+      #   <name>
+      #   .
+      #   .
+      #   .
+      # remove:
+      #   <name>
+      #   .
+      #   .
+      #   .
+      # import:
+      #   name: <name>
+      #   url: <url>
       cattr_reader :local_source
       @@local_source= 'software'
 
+      # Search all available packages and patterns
+      # @example 
+      #   ssc package search <search_string>
+      # @param [String] search_string 
+      # @param [Hash] options
+      # @option options [Boolean] :all_repos (true) search within current appliance or across all repositories.
       def search(search_string)
         require_appliance_id(@options) do |appliance|
-          software= appliance.search_software(search_string,
-                      filter_options(@options, [:all_repos]))
+          software= appliance.search_software(search_string, 
+                                              @options.slice(:all_repos))
           software.collect do |software|
             "#{software.name} v#{software.version}. Repo Id: #{software.repository_id}"
           end
-
         end
       end
 
+      # List all selected or installed packages in a given appliance
+      # @example 
+      #   ssc package list [installed|selected]
+      # @param [String] type Either "selected" or "installed"
+      # @param [Hash] options
+      # @option options [:build_id] (nil) optional - specify which build's packages you would like to see.
+      # @return [String] list of packages
       def list(type)
         raise ArgumentError, "installed | selected package only" unless ['installed', 'selected'].include?(type)
-        if @not_local || local_empty?
+        if @not_local || no_local_list?
           require_appliance_id(@options) do |appliance|
-            params= @options[:build_id]? {} : @options.slice(:build_id)
+            params= @options.slice(:build_id)
             software= appliance.send("#{type}_software")
-            formatted_software= software.collect do |package|
-              package.name + (package.version ? ( ' v'+package.version ) : "")
+            formatted_list= software.collect do |package|
+              version= package.version ? { "version" => package.version } : nil
+              {package.name => version}
             end
-            save(formatted_software) if type == "installed"
-            formatted_software
+            save({type  => formatted_list})
           end
         else
-          read
+          read(type)
         end
       end
 
@@ -50,7 +90,7 @@ module SSC
             end
           end
         else
-          save([ "#{name}: add" ])
+          save({"add" => {name => nil}})
         end
       end
 
@@ -61,7 +101,7 @@ module SSC
             ["State: #{response['state']}"]
           end
         else
-          save([ "#{name}: remove" ])
+          save({"remove" => {name => nil}})
         end
       end
 
@@ -72,7 +112,7 @@ module SSC
             response.collect{|key, val| "#{key}: #{val}"}
           end
         else
-          save(["ban: #{name}"])
+          save({"ban" => {name => nil}})
         end
       end
 
@@ -83,7 +123,7 @@ module SSC
             response.collect{|key, val| "#{key}: #{val}"}
           end
         else
-          save(["unban: #{name}"])
+          save(({"unban" => {name => nil}}))
         end
       end
     end
