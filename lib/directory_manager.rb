@@ -43,44 +43,50 @@ module SSC
     module InstanceMethods
 
       # Save data to local storage file
-      # @param (Hash) data The hash with data to be saved. 
+      # @param [Hash] data The hash with data to be saved. 
       #	  This methods expects the hash to be properly formatted
       #	  The format will vary depending on the local source file
       #	  The strategy for saving will be to merge the `data`hash with
       #	  the hash obtained by parsing the local source YAML file.
+      #	@return [String] The new modified file
       def save(data)
-        source= self.class.class_variable_get('@@local_source')
-        if File.exist?(source)
+        safe_get_source_file do |source|
 	  parsed_file= YAML::load(File.read(source))
 	  new_data= parsed_file.merge(data)
 	  File.open(source, 'w') { |f| f.write(new_data.to_yaml) }
-	else
-	  raise "Couldn't find the local source file"
-	end
-        written
+          File.read(source)
+        end
       end
 
       # Reads data from the local storage file
-      # @param (String) section (optional) This is the top-level section
+      # @param [String] section (optional) This is the top-level section
       #	  of the storage file that is to be read. It can be left blank to 
       #	  return all sections of the file
+      #	@return [String] Either the whole file of the specified section
       def read(section = nil)
-        source= self.class.class_variable_get('@@local_source')
-	if File.exist?(source)
+        safe_get_source_file do |source|
 	  if section
 	    parsed_file= YAML::load(File.read(source))
 	    parase_file[section].to_yaml
 	  else
-	    parsed_file.to_yaml
+	    File.read(source)
 	  end
-	else
-	  raise "Couldn't find the local source file"
-	end
+        end
       end
 
       private
 
 
+      # Wrapper to check existence of source file and other sanity checks 
+      # It takes a block with one argument - the path of the source file
+      def safe_get_source_file
+        source= self.class.class_variable_get('@@local_source')
+        if File.exist?(source)
+          yield source
+        else
+          raise "Couldn't find the local source file"
+        end
+      end
 
       def find_file_id(file_name) 
         file_list= File.join(self.class.class_variable_get('@@local_source'), '.file_list')

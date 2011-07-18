@@ -8,7 +8,8 @@ module SSC
       # list:
       #   <id>:
       #     name: <repo.name>
-      #     base_url: <repo.base_url>
+      #     type: <repo.type>
+      #     base_system: <repo.base_url>
       #   .
       #   .
       #   .
@@ -22,6 +23,9 @@ module SSC
       #   .
       #   .
       #   .
+      # import:
+      #   name: <name>
+      #   url: <url>
       cattr_reader :local_source
       @@local_source= 'respositories'
 
@@ -70,7 +74,7 @@ module SSC
             response.collect{|repos| repos.name}
           end
         else
-          save(repo_ids.collect { |i| "#{i}: add"})
+          save({'add' => repo_ids})
         end
       end
 
@@ -81,7 +85,7 @@ module SSC
             ["Removed #{repo_ids.join(", ")}"]
           end
         else
-          save(repo_ids.collect { |i| "#{i}: remove"})
+          save({'remove' => repo_ids})
         end
       end
       
@@ -90,7 +94,8 @@ module SSC
           repository= StudioApi::Repository.import(url, name)
           ["Added #{repository.name}"]
         else
-          save(["import: #{url}, #{name}"])
+          save({ "import" => {"name" => name, 
+                              "url" => url}})
         end
       end
     end
