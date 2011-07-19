@@ -4,8 +4,6 @@ module SSC
     def self.included(base)
       base.extend ClassMethods
       base.send :include, InstanceMethods
-      def included(base)
-      end
     end
 
     module ClassMethods
@@ -44,17 +42,25 @@ module SSC
 
       # Save data to local storage file
       # @param [Hash] data The hash with data to be saved. 
-      #	  This methods expects the hash to be properly formatted
-      #	  The format will vary depending on the local source file
-      #	  The strategy for saving will be to merge the `data`hash with
-      #	  the hash obtained by parsing the local source YAML file.
       #	@return [String] The new modified file
       def save(data)
         safe_get_source_file do |source|
 	  parsed_file= YAML::load(File.read(source))
-	  new_data= parsed_file.merge(data)
-	  File.open(source, 'w') { |f| f.write(new_data.to_yaml) }
-          File.read(source)
+          # YAML::load returns false if file is empty
+          parsed_file= {} unless parsed_file
+	  parsed_file.merge!(data)
+	  File.open(source, 'w') { |f| f.write(parsed_file.to_yaml) }
+        end
+      end
+
+      # use for add and remove
+      def add_items(section, items)
+        safe_get_source_file do |source|
+	  parsed_file= YAML::load(File.read(source))
+          original_items= parsed_file[section]
+          new_list= original_items | items
+          parsed_file[section]= new_list
+	  File.open(source, 'w') { |f| f.write(parse_file.to_yaml) }
         end
       end
 
@@ -67,7 +73,7 @@ module SSC
         safe_get_source_file do |source|
 	  if section
 	    parsed_file= YAML::load(File.read(source))
-	    parase_file[section].to_yaml
+	    parsed_file[section].to_yaml
 	  else
 	    File.read(source)
 	  end
@@ -81,6 +87,7 @@ module SSC
       # It takes a block with one argument - the path of the source file
       def safe_get_source_file
         source= self.class.class_variable_get('@@local_source')
+        source= File.join(Dir.pwd, source)
         if File.exist?(source)
           yield source
         else
@@ -154,8 +161,8 @@ module SSC
       # @return [Boolean] true if there is no list
       def local_empty?
         safe_get_source_file do |source|
-          list= YAML::load(source)['list']
-          list == nil || list == {} || list == []
+          list= YAML::load(File.read source)
+          !list || list == nil || list == {} || list == []
         end
       end
       

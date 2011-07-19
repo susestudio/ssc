@@ -26,82 +26,82 @@ module SSC
       # import:
       #   name: <name>
       #   url: <url>
-      cattr_reader :local_source
-      @@local_source= 'respositories'
+      no_tasks do
+        cattr_reader :local_source
+        @@local_source= 'repositories'
+      end
 
-      # Search all available repositories 
-      # @example
-      #   ssc repository search <search_string>
       # @param [String] search_string for respository search
       # @param [Hash] options
       # @option options [String] :base_system (nil) optional base system specification
+      desc "search SEARCH_STRING", "search all available repositories"
+      require_appliance_id
+      method_option :base_system, :type => :string
       def search(search_string)
         params= {:filter => search_string}
-        params= params.merge({:base_system => @options[:base_system]}) if @options[:base_system]
+        params= params.merge({:base_system => options.base_system}) if options.base_system
         repos= StudioApi::Repository.find(:all, :params => params)
-        repos.collect do |repo|
+        say_array(repos.collect do |repo|
           "#{repo.id}.) #{repo.name}: #{repo.base_url}
           #{[repo.matches.software_name].flatten.join(', ')}\n"
-        end
+        end)
       end
 
-      # List all repositories in a given appliance
-      # @example
-      #   ssc repository list
+      desc "list", "list all repositories in a given appliance"
+      require_appliance_id
+      allow_remote_option
       def list
-        if @not_local || local_empty?
-          list= require_appliance_id(@options) do |appliance|
+        if options.remote? || local_empty?
+          list= require_appliance do |appliance|
             appliance.repositories.collect do |repo|
               { repo.id => { 'name'        => repo.name, 
                              'type'        => repo.type, 
                              'base_system' => repo.base_system}}
             end
           end
-          save({'list' =>  list}, 'w')
+          save({'list' =>  list})
         end
-        read('list')
+        say read('list')
       end
 
-      # Add an existing repository to the appliance
-      # @example
-      #   ssc repository add 13412 45636 92168
       # @param [Array] repo_ids
+      desc 'add REPO_IDS', 'add existing repositories to the appliance'
+      require_appliance_id
+      allow_remote_option
       def add(*repo_ids)
-        if @not_local
-          require_appliance_id(@options) do |appliance|
+        if options.remote?
+          require_appliance do |appliance|
             response= appliance.add_repository(repo_ids)
-            ["Added"]+response.collect{|repos| repos.name}
+            say "Added"+( response.collect{|repos| repos.name} ).join(", ")
           end
         else
-          save({'add' => repo_ids})
+          add_items('add', repo_ids)
         end
       end
 
-      # Remove a repository from an appliance
-      # @example
-      #   ssc repository remove 12432 19136 21935
       # @param [Array] repo_ids
+      desc 'remove REPO_IDS', 'remove existing repositories from appliance'
+      require_appliance_id
+      allow_remote_option
       def remove(*repo_ids)
-        if @not_local
-          require_appliance_id(@options) do |appliance|
+        if options.remote?
+          require_appliance do |appliance|
             response= appliance.remove_repository(repo_ids)
-            "Removed #{repo_ids.join(", ")}"
+            say "Removed #{repo_ids.join(", ")}"
           end
         else
-          save({'remove' => repo_ids})
+          add_items('remove', repo_ids)
         end
       end
 
-      # Import a custom repository into Suse Studio
-      # @example
-      #   ssc repository import http://repository.org/path custom_repository
+      desc 'import URL NAME', 'import a 3rd party repository into appliance'
+      allow_remote_option
       def import(url, name) 
-        if @not_local
+        if options.remote?
           repository= StudioApi::Repository.import(url, name)
-          "Added #{repository.name} at #{url}"
+          say "Added #{repository.name} at #{url}"
         else
-          save({ "import" => {"name" => name, 
-                              "url" => url}})
+          add_item("import", [{"name" => name, "url" => url}])
         end
       end
     end

@@ -30,6 +30,10 @@ module SSC
             :default => config["appliance_id"]
         end
 
+        def allow_remote_option
+          method_option :remote, :type => :boolean, :default => false
+        end
+
         def get_config
           YAML::load File.read(File.join('.', '.sscrc'))
         end

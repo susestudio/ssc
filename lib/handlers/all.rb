@@ -27,7 +27,7 @@ module SSC
 end
 
 require 'appliance'
-#require 'repository'
+require 'repository'
 #require 'package'
 #require 'template'
 #require 'file'

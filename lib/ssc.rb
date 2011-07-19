@@ -10,9 +10,9 @@ require 'yaml'
 module SSC
   class Base < Thor
     register Handler::Appliance, :appliance, "appliance", "manage appliances"
+    register Handler::Repository, :repository, "repository","manage repositories"
     #register Handler::Template, :template, "template", "manage templates"
     #register Handler::Package, :package, "package", "manage packages"
-    #register Handler::Repositories, :repository, "repository", "manage repositories"
     #register Handler::File, :file, "file", "manage files"
   end
 end
