@@ -28,6 +28,6 @@ end
 
 require 'appliance'
 require 'repository'
-#require 'package'
+require 'package'
 #require 'template'
 #require 'file'

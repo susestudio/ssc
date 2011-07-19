@@ -41,26 +41,20 @@ module SSC
     module InstanceMethods
 
       # Save data to local storage file
-      # @param [Hash] data The hash with data to be saved. 
-      #	@return [String] The new modified file
-      def save(data)
+      # @param [String] section The section of the document that is to be saved
+      # @param [Array] list The data in Array format which will be merged with existing data
+      def save(section, list)
         safe_get_source_file do |source|
 	  parsed_file= YAML::load(File.read(source))
           # YAML::load returns false if file is empty
           parsed_file= {} unless parsed_file
-	  parsed_file.merge!(data)
-	  File.open(source, 'w') { |f| f.write(parsed_file.to_yaml) }
-        end
-      end
-
-      # use for add and remove
-      def add_items(section, items)
-        safe_get_source_file do |source|
-	  parsed_file= YAML::load(File.read(source))
-          original_items= parsed_file[section]
-          new_list= original_items | items
-          parsed_file[section]= new_list
-	  File.open(source, 'w') { |f| f.write(parse_file.to_yaml) }
+          final_list= list
+          if parsed_file[section]
+            current_list= parsed_file[section]
+            final_list= current_list | final_list
+          end
+          parsed_file[section]= final_list
+          File.open(source, 'w') {|f| f.write parsed_file.to_yaml}
         end
       end
 
@@ -73,7 +67,7 @@ module SSC
         safe_get_source_file do |source|
 	  if section
 	    parsed_file= YAML::load(File.read(source))
-	    parsed_file[section].to_yaml
+	    parsed_file[section]
 	  else
 	    File.read(source)
 	  end
@@ -91,7 +85,7 @@ module SSC
         if File.exist?(source)
           yield source
         else
-          raise "Couldn't find the local source file"
+          raise "Couldn't find the local source file" unless options.remote?
         end
       end
 

@@ -27,103 +27,125 @@ module SSC
       #   .
       #   .
       #   .
-      # import:
-      #   name: <name>
-      #   url: <url>
-      cattr_reader :local_source
-      @@local_source= 'software'
+      # ban:
+      #   <name>
+      #   .
+      #   .
+      #   .
+      # unban:
+      #   <name>
+      #   .
+      #   .
+      #   .
 
-      # Search all available packages and patterns
-      # @example 
-      #   ssc package search <search_string>
-      # @param [String] search_string 
-      # @param [Hash] options
-      # @option options [Boolean] :all_repos (true) search within current appliance or across all repositories.
+      no_tasks do 
+        cattr_reader :local_source
+        @@local_source= 'software'
+      end
+
+      desc 'search SEARCH_STRING', 'search available packages and patterns'
+      require_appliance_id
+      method_option :all_repos, :type => :boolean, :default => true
       def search(search_string)
         require_appliance_id(@options) do |appliance|
-          software= appliance.search_software(search_string, 
-                                              @options.slice(:all_repos))
-          software.collect do |software|
+          params= {:all_repos => options.all_repos} if options.all_repos
+          software= appliance.search_software(search_string, params)
+          say_array software.collect do |software|
             "#{software.name} v#{software.version}. Repo Id: #{software.repository_id}"
           end
         end
       end
 
-      # List all selected or installed packages in a given appliance
-      # @example 
-      #   ssc package list [installed|selected]
-      # @param [String] type Either "selected" or "installed"
-      # @param [Hash] options
-      # @option options [:build_id] (nil) optional - specify which build's packages you would like to see.
-      # @return [String] list of packages
+      desc 'list [selected|installed]', 'list all selected or installed packages'
+      require_appliance_id
+      allow_remote_option
+      method_option :build_id, :type => :numeric
       def list(type)
-        raise ArgumentError, "installed | selected package only" unless ['installed', 'selected'].include?(type)
-        if @not_local || no_local_list?
-          require_appliance_id(@options) do |appliance|
-            params= @options.slice(:build_id)
+        say("installed | selected package only", :red) unless ['installed', 'selected'].include?(type)
+        out= if options.remote? || no_local_list?
+          require_appliance do |appliance|
+            params= {:build_id => options.build_id} if options.build_id
             software= appliance.send("#{type}_software")
             formatted_list= software.collect do |package|
               version= package.version ? { "version" => package.version } : nil
               {package.name => version}
             end
-            save({type  => formatted_list})
+            save(type, formatted_list)
+            formatted_list
           end
         else
           read(type)
         end
+        say out.to_yaml
       end
 
+
+      desc 'add NAME', 'add a package to the appliance'
+      require_appliance_id
+      allow_remote_option
       def add(name)
-        if @not_local
-          require_appliance_id(@options) do |appliance|
+        if options.remote?
+          require_appliance do |appliance|
             response= appliance.add_package(name)
-            case response['state']
+            say case response['state']
             when "fixed"
-              [ "Package Added. State: #{response['state']}" ]
+              "Package Added. State: #{response['state']}"
             when "equal"
-              [ "Package Not Added." ]
+              "Package Not Added."
             when "broken"
-              [ "Package Added. State: #{response['state']}.",
-                "Please resolve dependencies" ]
+              "Package Added. State: #{response['state']}. Please resolve dependencies"
             else
-              [ "unknown code" ]
+              "unknown code"
             end
           end
         else
-          save({"add" => {name => nil}})
+          save("add", [ name ])
+          say "#{name} marked for addition"
         end
       end
 
+      desc 'remove NAME', 'remove a package from the appliance'
+      require_appliance_id
+      allow_remote_option
       def remove(name)
-        if @not_local
-          require_appliance_id(@options) do |appliance|
+        if options.remote?
+          require_appliance do |appliance|
             response= appliance.remove_package(name)
-            ["State: #{response['state']}"]
+            say "State: #{response['state']}"
           end
         else
-          save({"remove" => {name => nil}})
+          save("remove", [ name ])
+          say "#{name} marked for removal"
         end
       end
 
+      desc 'ban NAME', 'ban a package from the appliance'
+      require_appliance_id
+      allow_remote_option
       def ban(name)
-        if @not_local
-          require_appliance_id(@options) do |appliance|
+        if options.remote?
+          require_appliance do |appliance|
             response= appliance.ban_package(name)
             response.collect{|key, val| "#{key}: #{val}"}
           end
         else
-          save({"ban" => {name => nil}})
+          save("ban", [ name ])
+          say "#{name} marked to be banned"
         end
       end
 
+      desc 'unban NAME', 'unban a package for the appliance'
+      require_appliance_id
+      allow_remote_option
       def unban(name)
-        if @not_local
-          require_appliance_id(@options) do |appliance|
+        if options.remote?
+          require_appliance do |appliance|
             response= appliance.unban_package(name)
             response.collect{|key, val| "#{key}: #{val}"}
           end
         else
-          save(({"unban" => {name => nil}}))
+          save("unban", [ name ])
+          say "#{name} marked to be unbanned"
         end
       end
     end

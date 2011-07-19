@@ -31,11 +31,8 @@ module SSC
         @@local_source= 'repositories'
       end
 
-      # @param [String] search_string for respository search
-      # @param [Hash] options
-      # @option options [String] :base_system (nil) optional base system specification
       desc "search SEARCH_STRING", "search all available repositories"
-      require_appliance_id
+      require_authorization
       method_option :base_system, :type => :string
       def search(search_string)
         params= {:filter => search_string}
@@ -51,20 +48,21 @@ module SSC
       require_appliance_id
       allow_remote_option
       def list
-        if options.remote? || local_empty?
-          list= require_appliance do |appliance|
+        list= if options.remote? || no_local_list?
+          require_appliance do |appliance|
             appliance.repositories.collect do |repo|
               { repo.id => { 'name'        => repo.name, 
                              'type'        => repo.type, 
                              'base_system' => repo.base_system}}
             end
           end
-          save({'list' =>  list}) unless options.remote?
+        else
+          read('list')
         end
-        say read('list')
+        save('list', list) unless options.remote?
+        say list.to_yaml
       end
 
-      # @param [Array] repo_ids
       desc 'add REPO_IDS', 'add existing repositories to the appliance'
       require_appliance_id
       allow_remote_option
@@ -75,11 +73,11 @@ module SSC
             say "Added"+( response.collect{|repos| repos.name} ).join(", ")
           end
         else
-          add_items('add', repo_ids)
+          save('add', repo_ids)
+          say "Marked the following for addition #{repo_ids.join(", ")}"
         end
       end
 
-      # @param [Array] repo_ids
       desc 'remove REPO_IDS', 'remove existing repositories from appliance'
       require_appliance_id
       allow_remote_option
@@ -90,7 +88,8 @@ module SSC
             say "Removed #{repo_ids.join(", ")}"
           end
         else
-          add_items('remove', repo_ids)
+          save('remove', repo_ids)
+          say "Marked the following for removal #{repo_ids.join(", ")}"
         end
       end
 
@@ -101,7 +100,8 @@ module SSC
           repository= StudioApi::Repository.import(url, name)
           say "Added #{repository.name} at #{url}"
         else
-          add_item("import", [{"name" => name, "url" => url}])
+          save("import", [{"name" => name, "url" => url}])
+          say "Marked #{name} for import"
         end
       end
     end
