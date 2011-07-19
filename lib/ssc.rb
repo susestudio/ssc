@@ -12,7 +12,7 @@ module SSC
     register Handler::Appliance, :appliance, "appliance", "manage appliances"
     register Handler::Repository, :repository, "repository","manage repositories"
     register Handler::Package, :package, "package", "manage packages"
-    #register Handler::Template, :template, "template", "manage templates"
+    register Handler::Template, :template, "template", "manage templates"
     #register Handler::File, :file, "file", "manage files"
   end
 end
