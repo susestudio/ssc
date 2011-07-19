@@ -31,7 +31,7 @@ module SSC
         @@local_source= 'repositories'
       end
 
-      desc "search SEARCH_STRING", "search all available repositories"
+      desc "repository search SEARCH_STRING", "search all available repositories"
       require_authorization
       method_option :base_system, :type => :string
       def search(search_string)
@@ -44,7 +44,7 @@ module SSC
         end)
       end
 
-      desc "list", "list all repositories in a given appliance"
+      desc "repository list", "list all repositories in a given appliance"
       require_appliance_id
       allow_remote_option
       def list
@@ -63,7 +63,7 @@ module SSC
         say list.to_yaml
       end
 
-      desc 'add REPO_IDS', 'add existing repositories to the appliance'
+      desc 'repository add REPO_IDS', 'add existing repositories to the appliance'
       require_appliance_id
       allow_remote_option
       def add(*repo_ids)
@@ -78,7 +78,7 @@ module SSC
         end
       end
 
-      desc 'remove REPO_IDS', 'remove existing repositories from appliance'
+      desc 'repository remove REPO_IDS', 'remove existing repositories from appliance'
       require_appliance_id
       allow_remote_option
       def remove(*repo_ids)
@@ -93,7 +93,7 @@ module SSC
         end
       end
 
-      desc 'import URL NAME', 'import a 3rd party repository into appliance'
+      desc 'repository import URL NAME', 'import a 3rd party repository into appliance'
       allow_remote_option
       def import(url, name) 
         if options.remote?

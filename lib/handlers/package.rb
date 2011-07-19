@@ -43,7 +43,7 @@ module SSC
         @@local_source= 'software'
       end
 
-      desc 'search SEARCH_STRING', 'search available packages and patterns'
+      desc 'package search SEARCH_STRING', 'search available packages and patterns'
       require_appliance_id
       method_option :all_repos, :type => :boolean, :default => true
       def search(search_string)
@@ -56,7 +56,7 @@ module SSC
         end
       end
 
-      desc 'list [selected|installed]', 'list all selected or installed packages'
+      desc 'package list [selected|installed]', 'list all selected or installed packages'
       require_appliance_id
       allow_remote_option
       method_option :build_id, :type => :numeric
@@ -80,7 +80,7 @@ module SSC
       end
 
 
-      desc 'add NAME', 'add a package to the appliance'
+      desc 'package add NAME', 'add a package to the appliance'
       require_appliance_id
       allow_remote_option
       def add(name)
@@ -104,7 +104,7 @@ module SSC
         end
       end
 
-      desc 'remove NAME', 'remove a package from the appliance'
+      desc 'package remove NAME', 'remove a package from the appliance'
       require_appliance_id
       allow_remote_option
       def remove(name)
@@ -119,7 +119,7 @@ module SSC
         end
       end
 
-      desc 'ban NAME', 'ban a package from the appliance'
+      desc 'package ban NAME', 'ban a package from the appliance'
       require_appliance_id
       allow_remote_option
       def ban(name)
@@ -134,7 +134,7 @@ module SSC
         end
       end
 
-      desc 'unban NAME', 'unban a package for the appliance'
+      desc 'package unban NAME', 'unban a package for the appliance'
       require_appliance_id
       allow_remote_option
       def unban(name)

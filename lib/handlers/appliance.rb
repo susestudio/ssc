@@ -2,7 +2,7 @@ module SSC
   module Handler
     class Appliance < Base
 
-      desc "create APPLIANCE_NAME", "Create an appliance"
+      desc "appliance create APPLIANCE_NAME", "Create an appliance"
       require_authorization
       method_option :source_id, :type => :numeric, :required => true
       method_option :arch, :type => :string
@@ -18,14 +18,14 @@ module SSC
          File.join(appliance_dir, 'software') ]
       end
       
-      desc "list", "list all appliances"
+      desc "appliance list", "list all appliances"
       require_authorization
       def list
         appliances= StudioApi::Appliance.find(:all)
         print_table appliances.collect{|i| [i.id, i.name]}
       end
 
-      desc "info", "show details of a specific appliance"
+      desc "appliance info", "show details of a specific appliance"
       require_appliance_id
       def info
         appliance= StudioApi::Appliance.find(options.appliance_id)
@@ -34,7 +34,7 @@ module SSC
          "Download Url: #{download_url(appliance)}"]
       end
 
-      desc "destroy", "destroy the current appliance (within appliance directory only)"
+      desc "appliance destroy", "destroy the current appliance (within appliance directory only)"
       require_appliance_id
       def destroy
         if appliance.destroy.code_type == Net::HTTPOK
@@ -46,7 +46,7 @@ module SSC
         end
       end
 
-      desc "status", "gives status of the appliance"
+      desc "appliance status", "gives status of the appliance"
       require_appliance_id
       def status
         require_appliance do |appliance|

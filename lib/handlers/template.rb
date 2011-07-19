@@ -2,14 +2,14 @@ module SSC
   module Handler
     class Template < Base
 
-      desc 'list', 'list all available template sets'
+      desc 'template list', 'list all available template sets'
       require_authorization
       def list
         templates= StudioApi::TemplateSet.find(:all)
         say_array templates.collect {|template| template.name}
       end
 
-      desc 'show NAME', 'show details of a particular template set'
+      desc 'template show NAME', 'show details of a particular template set'
       require_authorization
       def show(name)
         template_set= StudioApi::TemplateSet.find(name)
