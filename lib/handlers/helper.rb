@@ -35,7 +35,11 @@ module SSC
         end
 
         def get_config
-          YAML::load File.read(File.join('.', '.sscrc'))
+          begin
+            YAML::load File.read(File.join('.', '.sscrc'))
+          rescue Errno::ENOENT
+            return {'username' => nil, 'password' => nil, 'appliance_id' => nil}
+          end
         end
       end
 

@@ -59,7 +59,7 @@ module SSC
                              'base_system' => repo.base_system}}
             end
           end
-          save({'list' =>  list})
+          save({'list' =>  list}) unless options.remote?
         end
         say read('list')
       end
