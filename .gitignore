@@ -14,5 +14,8 @@ doc
 # jeweler generated
 pkg
 
-#irb
+# irb
 .irbrc
+
+# gnome backup files
+*~
