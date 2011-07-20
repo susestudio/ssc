@@ -39,6 +39,7 @@ module SSC
     end
 
     module InstanceMethods
+      include Thor::Actions
 
       # Save data to local storage file
       # @param [String] section The section of the document that is to be saved
@@ -92,8 +93,13 @@ module SSC
       def find_file_id(file_name) 
         file_list= File.join(self.class.class_variable_get('@@local_source'), '.file_list')
         parsed_file= YAML::load(File.read(file_list))
-        if parsed_file["file_name"]
-          id= parsed_file["file_name"]["id"] 
+        if parsed_file["list"]
+          files= parsed_file["list"].select{|i| i.keys[0] == file_name}
+          if files.length < 1
+            raise ArgumentError, "file not found"
+          else
+            files[0][file_name]["id"]
+          end
         else
           raise ArgumentError, "file not found"
         end
@@ -112,14 +118,30 @@ module SSC
         end
       end
 
+      def find_diff(remote, local)
+        `diff #{remote} #{local}`
+      end
+
       def initiate_file(file_dir, file_name, id)
         source_file= File.join(file_dir, file_name)
         destination_file= full_local_file_path(file_name)
+        file_list= File.join(self.class.class_variable_get('@@local_source'), '.file_list')
         if File.exist?(source_file)
           FileUtils.cp(source_file, destination_file)
-          File.open(File.join(source, '.file_list'), 'a+') do  |f|
-            file_entry= "\n#{destination_file}\n  source_dir: #{file_dir}\n  id: #{id}"
-            write_to_file(f, [file_entry])
+          parsed_file= YAML::load(File.read(file_list)) || {}
+          File.open(file_list, 'w') do  |f|
+            if id # if the file has been uploaded 
+              parsed_file['list']= [] unless parsed_file['list']
+              parsed_file['list'] |= [{file_name => {
+                                         "id" => id,  
+                                         "path" => file_dir}}]
+            else
+              parsed_file['add']= [] unless parsed_file['add']
+
+              parsed_file['add'] |= [{file_name => { 
+                                        "path" => file_dir}}]
+            end
+            f.write(parsed_file.to_yaml)
           end
           destination_file
         else
@@ -129,7 +151,9 @@ module SSC
 
       def list_local_files
         source= self.class.class_variable_get('@@local_source')
-        File.readlines(File.join(source, '.file_list')).collect{|i| i.strip} if source
+        parsed_file= YAML::load File.read(File.join(source, '.file_list'))
+        parsed_file = {} unless parsed_file
+        parsed_file["list"]
       end
 
       def parse_file_list
@@ -150,17 +174,20 @@ module SSC
         end
       end
 
+      def file_list_empty?
+        safe_get_source_file do |source|
+          !YAML::load File.read(File.join(source, '.file_list'))
+        end
+      end
+
       # Checks if the local source file has a list 
-      # local_empty? is deprecated and is to be replaced with no_local_list?
       # @return [Boolean] true if there is no list
-      def local_empty?
+      def no_local_list?
         safe_get_source_file do |source|
           list= YAML::load(File.read source)
           !list || list == nil || list == {} || list == []
         end
       end
-      
-      alias :no_local_list? :local_empty?
 
     end
   end

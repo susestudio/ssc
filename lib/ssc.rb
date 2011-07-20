@@ -13,6 +13,6 @@ module SSC
     register Handler::Repository, :repository, "repository","manage repositories"
     register Handler::Package, :package, "package", "manage packages"
     register Handler::Template, :template, "template", "manage templates"
-    #register Handler::File, :file, "file", "manage files"
+    register Handler::OverlayFile, :file, "file", "manage files"
   end
 end
