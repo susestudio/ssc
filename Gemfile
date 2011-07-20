@@ -1,6 +1,7 @@
 source "http://rubygems.org"
 
-gem "studio_api", ">= 3.1.1"
+gem "studio_api", ">= 3.1.2"
+gem "thor", ">=0.14.6"
 
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
