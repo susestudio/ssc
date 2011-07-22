@@ -21,14 +21,16 @@ module SSC
       desc 'file create PATH', 'create a new overlay file'
       require_appliance_id
       allow_remote_option
-      method_option :path, :type => :string, :default => ''
-      method_option :name, :type => :string, :default => ''
+      method_option :path,        :type => :string, :default => ''
+      method_option :name,        :type => :string, :default => ''
       method_option :permissions, :type => :string, :default => '0755'
-      method_option :owner, :type => :string, :default => 'root'
+      method_option :owner,       :type => :string, :default => 'root'
+      method_option :group,       :type => :string, :default => 'root'
       def create(path)
         absolute_path= File.expand_path(path)
         optional_file_params= {:permissions => options.permissions, 
-                               :owner => options.owner}
+                               :group       => options.group,
+                               :owner       => options.owner}
         file_dir, file_name= File.split(absolute_path)
         file_dir = options.path == '' ? file_dir : options.path
         file_name = options.name == '' ? file_name : options.name
@@ -89,7 +91,7 @@ module SSC
           out= if options.remote? || file_list_empty?
             response= StudioApi::File.find(:all, :params => {:appliance_id => appliance.id})
             response.collect do |file|
-              {file.filename => {"id" => id, "path" => file.path}}
+              {file.filename => {"id" => file.id, "path" => file.path}}
             end
           else
             list_local_files

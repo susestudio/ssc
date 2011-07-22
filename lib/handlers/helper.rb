@@ -62,7 +62,12 @@ module SSC
           # Included for those methods that still return arrays for printing
           # Can be removed eventually
           # Still seems to be a nice way to format the text output of methods
-          say array.join("\n"), color
+          if array.is_a?(Array)
+            array= array.collect {|i| yield(i)} if block_given?
+            say array.join("\n"), color
+          else
+            say "\n"
+          end
         end
 
         def require_appliance

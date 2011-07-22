@@ -14,5 +14,8 @@ module SSC
     register Handler::Package, :package, "package", "manage packages"
     register Handler::Template, :template, "template", "manage templates"
     register Handler::OverlayFile, :file, "file", "manage files"
+    register Handler::Status, :status, "(general) status", "show status of appliance"
+    register Handler::Checkout, :checkout, "(general) checkout", "checkout the latest changes"
+    register Handler::Commit, :commit, "(general) commit", "commit local changes"
   end
 end

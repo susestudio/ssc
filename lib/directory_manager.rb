@@ -1,4 +1,48 @@
 module SSC
+  module NewDirectoryManager
+    class LocalStorageFile
+
+      def initialize(file_name)
+        @location= File.join(File.expand_path('.'), file_name)
+      end
+
+      def read
+        @parsed_file ||= YAML::load File.read(@location)
+      end
+
+      def pop(section)
+        read
+        if @parsed_file[section].is_a?(Array)
+          @parsed_file[section].pop
+        else
+          nil
+        end
+      end
+
+      def save
+        File.open(@location, 'w') {|f| f.write @parsed_file.to_yaml}
+      end
+    end
+
+    class PackageFile < LocalStorageFile
+      def initialize
+        super("software")
+      end
+    end
+
+    class RepositoryFile < LocalStorageFile
+      def initialize
+        super("repositories")
+      end
+    end
+
+    class FileListFile < LocalStorageFile
+      def initialize
+        super("files/.file_list")
+      end
+    end
+  end
+
   module DirectoryManager
 
     def self.included(base)
