@@ -51,6 +51,15 @@ module SSC
         super("files/.file_list")
       end
 
+      def pop(section)
+        file_hash= super(section)
+        file_name= file_hash.keys[0]
+        file_hash= file_hash[file_name]
+        { :name      => file_name,
+          :full_path => File.join(file_hash["path"]),
+          :params    => file_hash.slice("owner", "group", "permissions")}
+      end
+
       def is_uploaded?(file_name)
         read
         list= @parsed_file["list"].select{|i| i.keys[0] == file_name}

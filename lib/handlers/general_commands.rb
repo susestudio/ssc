@@ -126,7 +126,17 @@ module SSC
       end
 
       def files
-        @file_list= FileListFile.new
+        @file_list = FileListFile.new
+        # Add Overlay Files
+        while file= @file_list.pop("add")
+          params= @params.merge(file[:params])
+          invoke "s_s_c:handler:overlay_file:add", [file[:full_path]], params
+        end
+        # Add Overlay Files
+        while file= @file_list.pop("remove")
+          invoke "s_s_c:handler:overlay_file:remove", [file[:name]], @params
+        end
+        @file_list.save
       end
 
     end
