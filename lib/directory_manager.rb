@@ -18,6 +18,16 @@ module SSC
           nil
         end
       end
+      
+      def push(section, item)
+        read
+        if @parsed_file[section].is_a?(Array)
+          @parsed_file[section] |= [ item ]
+        else
+          @parsed_file[section] = [ item ]
+        end
+      end
+
 
       def save
         File.open(@location, 'w') {|f| f.write @parsed_file.to_yaml}
@@ -40,6 +50,13 @@ module SSC
       def initialize
         super("files/.file_list")
       end
+
+      def is_uploaded?(file_name)
+        read
+        list= @parsed_file["list"].select{|i| i.keys[0] == file_name}
+        list.length > 0 ? list[0]["id"].to_i : nil
+      end
+
     end
   end
 
@@ -166,7 +183,7 @@ module SSC
         `diff #{remote} #{local}`
       end
 
-      def initiate_file(file_dir, file_name, id)
+      def initiate_file(file_dir, file_name, id, options= {})
         source_file= File.join(file_dir, file_name)
         destination_file= full_local_file_path(file_name)
         file_list= File.join(self.class.class_variable_get('@@local_source'), '.file_list')
@@ -181,9 +198,8 @@ module SSC
                                          "path" => file_dir}}]
             else
               parsed_file['add']= [] unless parsed_file['add']
-
-              parsed_file['add'] |= [{file_name => { 
-                                        "path" => file_dir}}]
+              params= ( {"path" => file_dir} ).merge(options)
+              parsed_file['add'] |= [{file_name => params}]
             end
             f.write(parsed_file.to_yaml)
           end

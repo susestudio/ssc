@@ -4,21 +4,14 @@ module SSC
   module Handler
     class OverlayFile < Base
 
+      include NewDirectoryManager
 
       no_tasks do
         cattr_reader :local_source
         @@local_source= 'files/'
       end
 
-      # must be run in appliance directory
-      # takes the following argument:
-      # file_path => (relative positions("." and "..") allowed and ~ for home directory allowed)
-      # takes the following options:
-      # --path="/path/to/file_directory/"   => optional (by default it is the path of the file on the local system)
-      # --name="file_name"                  => optional (by default it is the name of the file on the local system)
-      # --permissions="0766"                => optional (default: 0755)
-      # --owner="user"                      => optional (default: root)
-      desc 'file create PATH', 'create a new overlay file'
+      desc 'file add PATH', 'create a new overlay file'
       require_appliance_id
       allow_remote_option
       method_option :path,        :type => :string, :default => ''
@@ -26,7 +19,7 @@ module SSC
       method_option :permissions, :type => :string, :default => '0755'
       method_option :owner,       :type => :string, :default => 'root'
       method_option :group,       :type => :string, :default => 'root'
-      def create(path)
+      def add(path)
         absolute_path= File.expand_path(path)
         optional_file_params= {:permissions => options.permissions, 
                                :group       => options.group,
@@ -46,8 +39,30 @@ module SSC
             say "Overlay file saved. Id: #{id}"
           end
         end
-        local_copy= initiate_file(file_dir, file_name, id)
+        local_copy= initiate_file(file_dir, file_name, id, optional_file_params)
         say "Created #{local_copy}"
+      end
+
+      desc 'file remove FILE_NAME', 'removes existing overlay file'
+      require_appliance_id
+      allow_remote_option
+      def remove(file_name)
+        @file_list= FileListFile.new
+        file_id= @file_list.is_uploaded?(file_name)
+        if options.remote? && file_id
+          begin
+            StudioApi::File.find(file_id).destroy
+            say "File '#{file_name}' removed"
+          rescue
+            raise Thor::Error, "Couldn't remove file #{file_name} (id: #{file_id}"
+          end
+        elsif options.remote? && !file_id
+          raise Thor::Error, "File '#{file_name}' not found"
+        else
+          @file_list.push('remove', {file_name => nil})
+          @file_list.save
+          say "File '#{file_name}' marked for removal"
+        end
       end
 
       desc 'file show FILE_NAME', 'show the contents of the file'
