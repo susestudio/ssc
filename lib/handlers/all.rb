@@ -13,8 +13,6 @@ module SSC
       include Helper
       include DirectoryManager
 
-      API_URL= 'https://susestudio.com/api/v1/user'
-
       def initialize(*args)
         super
 

@@ -5,8 +5,6 @@ module SSC
       include NewDirectoryManager
       include Helper
 
-      API_URL= 'https://susestudio.com/api/v1/user'
-
       def initialize(*args)
         super(args)
         begin
