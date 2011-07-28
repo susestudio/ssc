@@ -20,6 +20,13 @@ module SSC
         connect(options.username, options.password, optional_connection_options)
         @not_local= true if options.remote?
       end
+
+      no_tasks do 
+        def say(*args)
+          super(*args)
+          args[0]
+        end
+      end
     end
   end
 end

@@ -70,6 +70,7 @@ module SSC
           else
             say "\n"
           end
+          array
         end
 
         def require_appliance

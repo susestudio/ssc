@@ -19,3 +19,6 @@ pkg
 
 # gnome backup files
 *~
+
+# test config file
+test/test_config.yaml

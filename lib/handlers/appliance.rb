@@ -37,12 +37,14 @@ module SSC
       desc "appliance destroy", "destroy the current appliance (within appliance directory only)"
       require_appliance_id
       def destroy
-        if appliance.destroy.code_type == Net::HTTPOK
-          say 'Appliance Successfully Destroyed', :red
-        else
-          say_array ['There was a problem with destroying the appliance.',
-           'Make sure that you\'re in the appliance directory OR',
-           'Have provided the --appliance_id option']
+        require_appliance do |appliance|
+          if appliance.destroy.code_type == Net::HTTPOK
+            say 'Appliance Successfully Destroyed', :red
+          else
+            say_array ['There was a problem with destroying the appliance.',
+                       'Make sure that you\'re in the appliance directory OR',
+                       'Have provided the --appliance_id option']
+          end
         end
       end
 
