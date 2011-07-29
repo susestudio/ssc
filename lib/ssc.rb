@@ -8,7 +8,7 @@ require 'handlers/all'
 require 'yaml'
 
 module SSC
-  class Base < Thor
+  class Client < Thor
     register Handler::Appliance, :appliance, "appliance", "manage appliances"
     register Handler::Repository, :repository, "repository","manage repositories"
     register Handler::Package, :package, "package", "manage packages"
