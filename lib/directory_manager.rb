@@ -7,7 +7,16 @@ module SSC
       end
 
       def read
-        @parsed_file ||= YAML::load File.read(@location)
+        @parsed_file = @parsed_file || YAML::load(File.read(@location)) || {}
+      end
+
+      def [](section)
+        read
+        if @parsed_file[section]
+          @parsed_file[section]
+        else
+          []
+        end
       end
 
       def pop(section)
@@ -66,6 +75,30 @@ module SSC
         list.length > 0 ? list[0]["id"].to_i : nil
       end
 
+    end
+
+    class ApplianceDirectory
+      def initialize(name, options = {})
+        @name= name
+	@path= File.join(Dir.pwd, name)
+        @options= options
+      end
+
+      def create
+        FileUtils.mkdir_p(@name)
+        FileUtils.mkdir_p(File.join(@name, 'files'))
+        FileUtils.touch(File.join(@name, 'repositories'))
+        FileUtils.touch(File.join(@name, 'software'))
+        FileUtils.touch(File.join(@name, 'files/.file_list'))
+        File.open(File.join(@name, '.sscrc'), 'w') do |file|
+          file.write(@options.stringify_keys.to_yaml)
+        end
+        File.join(Dir.pwd, @name)
+      end
+
+      def valid?
+	Dir.exists?(@path) && File.exists?(File.join(@path, '.sscrc'))
+      end
     end
   end
 

@@ -45,6 +45,8 @@ module SSC
 
       module InstanceMethods
 
+        include NewDirectoryManager
+
         API_URL= 'https://susestudio.com/api/v1/user'
 
         # Establish connection to Suse Studio with username, password
@@ -78,6 +80,22 @@ module SSC
             yield(StudioApi::Appliance.find(options.appliance_id))
           else
             raise "Unable to find the appliance"
+          end
+        end
+
+        class ApplianceDirectoryError < StandardError; end
+
+        def require_appliance_directory
+          if File.exist?('./.sscrc')
+            require_appliance do |appliance|
+              files= {
+                :package    => PackageFile.new,
+                :repository => RepositoryFile.new,
+                :file_list  => FileListFile.new }
+              yield(appliance, files)
+            end
+          else
+            raise ApplianceDirectoryError, 'Appliance directory not found'
           end
         end
       end
