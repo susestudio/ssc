@@ -6,7 +6,7 @@ class TestAppliance < Test::Unit::TestCase
     setup do
       @source_id= TEST_CONFIG[:appliance_ids]["default_jeos"]
       @auth_params= TEST_CONFIG.slice(:username, :password)
-      @client= SSC::Base.new
+      @client= SSC::Client.new
       connection= StudioApi::Connection.new(@auth_params[:username], @auth_params[:password], "https://susestudio.com/api/v1/user/")
       StudioApi::Util.configure_studio_connection connection
     end
