@@ -8,7 +8,7 @@ require 'handlers/all'
 require 'yaml'
 
 module SSC
-  class Base < Handler::Base
+  class Client < Handler::Base
 
     include NewDirectoryManager
 

@@ -6,43 +6,6 @@ module SSC
       include Helper
     end
 
-    class Checkout < GeneralCommand
-      desc "checkout the latest changes to an appliance"
-      class_option :appliance_id, :type => :numeric, :default => nil
-
-      def params 
-        appliance_id= options.appliance ? options.appliance : @appliance_id
-        @params= {:remote       => true,
-                  :appliance_id => appliance_id,
-                  :username     => @username,
-                  :password     => @password}
-      end
-
-      def create_dir
-        if options.appliance_id
-          appliance= StudioApi::Appliance.find(options.appliance_id)
-          dir= ApplianceDirectory.new(appliance.name, @params.stringify_keys)
-          Dir.chdir(dir)
-        end
-      end
-
-      def package_list
-        invoke "s_s_c:handler:package:list", ["installed"], @params
-      end
-
-      def repository_list
-        invoke "s_s_c:handler:repository:list",  [], @params
-      end
-
-      def file_list
-        invoke "s_s_c:handler:overlay_file:list",  [], @params
-      end
-
-      def cleanup
-        Dir.chdir('..') if options.appliance_id
-      end
-    end
-
 
     class Commit < GeneralCommand
       desc "commit changes to studio"
