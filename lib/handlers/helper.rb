@@ -47,7 +47,6 @@ module SSC
 
         include NewDirectoryManager
 
-        API_URL= 'https://susestudio.com/api/v1/user'
 
         # Establish connection to Suse Studio with username, password
         def connect(user, pass, connection_options)
