@@ -48,19 +48,20 @@ module SSC
       require_appliance_id
       allow_remote_option
       def list
-        list= if options.remote? || no_local_list?
+        repo_file= RepositoryFile.new
+        list= if options.remote? || repo_file.empty_list?
           require_appliance do |appliance|
             appliance.repositories.collect do |repo|
-              { repo.id => { 'name'        => repo.name, 
-                             'type'        => repo.type, 
-                             'base_system' => repo.base_system}}
+              repo_file.push('list', { repo.id => { 'name' => repo.name, 
+                                     'type'    => repo.type, 
+                                     'base_system' => repo.base_system}})
             end
+            repo_file.save
           end
         else
-          read('list')
+          repo_file['list']
         end
-        save('list', list) unless options.remote?
-        say list.to_yaml
+        puts list.to_yaml
       end
 
       desc 'repository add REPO_IDS', 'add existing repositories to the appliance'
@@ -73,7 +74,9 @@ module SSC
             say "Added"+( response.collect{|repos| repos.name} ).join(", ")
           end
         else
-          save('add', repo_ids)
+          repo_file= RepositoryFile.new
+          repo_ids.each {|id| repo_file.push('add', id)}
+          repo_file.save
           say "Marked the following for addition #{repo_ids.join(", ")}"
         end
       end
@@ -88,7 +91,9 @@ module SSC
             say "Removed #{repo_ids.join(", ")}"
           end
         else
-          save('remove', repo_ids)
+          repo_file= RepositoryFile.new
+          repo_ids.each {|id| repo_file.push('remove', id)}
+          repo_file.save
           say "Marked the following for removal #{repo_ids.join(", ")}"
         end
       end
@@ -100,7 +105,9 @@ module SSC
           repository= StudioApi::Repository.import(url, name)
           say "Added #{repository.name} at #{url}"
         else
-          save("import", [{"name" => name, "url" => url}])
+          repo_file= RepositoryFile.new
+          repo_file.push('import', {"name" => name, "url" => url})
+          repo_file.save
           say "Marked #{name} for import"
         end
       end

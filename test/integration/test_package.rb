@@ -4,7 +4,6 @@ class TestPackage < Test::Unit::TestCase
 
   context "package" do
     setup do
-      Object.stubs(:say)
       @client= SSC::Client.new
       @auth_params= {:username => 'user', :password => 'pass'}
       @appliance_params= @auth_params.merge(:appliance_id => 5678)
@@ -26,9 +25,6 @@ class TestPackage < Test::Unit::TestCase
     end
 
     context "list" do
-      setup do
-      end
-
       ["selected", "installed"].each do |type|
         context type do
           setup do
