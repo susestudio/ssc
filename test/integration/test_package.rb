@@ -58,7 +58,6 @@ class TestPackage < Test::Unit::TestCase
               Dir.chdir('..')
             end
             should "raise and error" do
-              puts 'something'
               assert_raise(Errno::ENOENT) do 
                 @client.invoke("s_s_c:handler:package:#{action}", ['test_package'], @appliance_params.merge(:remote =>false))
               end

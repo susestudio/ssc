@@ -117,7 +117,7 @@ module SSC
 
     desc "build", "build an appliance"
     require_appliance_id
-    method_option :image_type, :type => :stirng, :required => true
+    method_option :image_type, :type => :string, :required => true
     def build
       require_appliance do |appliance|
         if appliance.status.state != "ok"

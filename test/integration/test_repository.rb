@@ -22,7 +22,6 @@ class TestRepository < Test::Unit::TestCase
     context "search" do
       setup do
         @default_mock_repo.stubs(:matches).returns(stub(:software_name => ''))
-        puts @default_mock_repo.matches.software_name
         StudioApi::Repository.expects(:find).with(:all, has_entry(:params, {:filter => 'search_string'})).returns([@default_mock_repo])
       end
       should "search all repos" do
@@ -62,7 +61,6 @@ class TestRepository < Test::Unit::TestCase
               Dir.chdir('..')
             end
             should "raise and error" do
-              puts 'something'
               assert_raise(Errno::ENOENT) do 
                 @client.invoke("s_s_c:handler:repository:#{action}", ['test_repository'], @appliance_params.merge(:remote =>false))
               end

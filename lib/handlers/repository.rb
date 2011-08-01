@@ -61,7 +61,7 @@ module SSC
         else
           repo_file['list']
         end
-        puts list.to_yaml
+        say list.to_yaml
       end
 
       desc 'repository add REPO_IDS', 'add existing repositories to the appliance'
