@@ -6,7 +6,12 @@ module SSC
         @location= File.join(File.expand_path('.'), file_name)
       end
 
+      def valid?
+        File.exist?(@location)
+      end
+
       def read
+        # default error is informative enough if the file is not found
         @parsed_file = @parsed_file || YAML::load(File.read(@location)) || {}
       end
 
@@ -35,11 +40,19 @@ module SSC
         else
           @parsed_file[section] = [ item ]
         end
+        item
       end
 
 
       def save
-        File.open(@location, 'w') {|f| f.write @parsed_file.to_yaml}
+        contents= @parsed_file.to_yaml
+        File.open(@location, 'w') {|f| f.write contents}
+        contents
+      end
+
+      def empty_list?
+        read
+        (!@parsed_file['list']) || (@parsed_file['list'] == []) || (@parsed_file['list'] == {})
       end
     end
 

@@ -47,7 +47,7 @@ module SSC
       require_appliance_id
       method_option :all_repos, :type => :boolean, :default => true
       def search(search_string)
-        require_appliance_id(@options) do |appliance|
+        require_appliance do |appliance|
           params= {:all_repos => options.all_repos} if options.all_repos
           software= appliance.search_software(search_string, params)
           say_array software.collect do |software|
@@ -61,20 +61,20 @@ module SSC
       allow_remote_option
       method_option :build_id, :type => :numeric
       def list(type)
-        say("installed | selected package only", :red) unless ['installed', 'selected'].include?(type)
-        out= if options.remote? || no_local_list?
+        package_file= PackageFile.new
+        raise Thor::Error, "installed | selected package only"  unless ['installed', 'selected'].include?(type)
+        out= if options.remote? || package_file.empty_list?
           require_appliance do |appliance|
             params= {:build_id => options.build_id} if options.build_id
             software= appliance.send("#{type}_software")
             formatted_list= software.collect do |package|
               version= package.version ? { "version" => package.version } : nil
-              {package.name => version}
+              package_file.push('list', {package.name => version})
             end
-            save(type, formatted_list)
-            formatted_list
+            package_file.save
           end
         else
-          read(type)
+          package_file.read
         end
         say out.to_yaml
       end
@@ -99,7 +99,9 @@ module SSC
             end
           end
         else
-          save("add", [ name ])
+          package_file= PackageFile.new
+          package_file.push('add', name)
+          package_file.save
           say "#{name} marked for addition"
         end
       end
@@ -114,7 +116,9 @@ module SSC
             say "State: #{response['state']}"
           end
         else
-          save("remove", [ name ])
+          package_file= PackageFile.new
+          package_file.push('remove', name)
+          package_file.save
           say "#{name} marked for removal"
         end
       end
@@ -129,7 +133,9 @@ module SSC
             response.collect{|key, val| "#{key}: #{val}"}
           end
         else
-          save("ban", [ name ])
+          package_file= PackageFile.new
+          package_file.push('ban', name)
+          package_file.save
           say "#{name} marked to be banned"
         end
       end
@@ -144,7 +150,9 @@ module SSC
             response.collect{|key, val| "#{key}: #{val}"}
           end
         else
-          save("unban", [ name ])
+          package_file= PackageFile.new
+          package_file.push('unban', name)
+          package_file.save
           say "#{name} marked to be unbanned"
         end
       end
