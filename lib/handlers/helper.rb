@@ -30,6 +30,12 @@ module SSC
             :default => config["appliance_id"]
         end
 
+        def require_build_id
+          config= get_config
+          method_option :build_id, :type => :numeric, :required => true,
+            :default => config["latest_build_id"]
+        end
+
         def allow_remote_option
           method_option :remote, :type => :boolean, :default => false
         end
