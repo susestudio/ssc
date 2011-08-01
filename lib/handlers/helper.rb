@@ -50,7 +50,7 @@ module SSC
 
         # Establish connection to Suse Studio with username, password
         def connect(user, pass, connection_options)
-          @connection= StudioApi::Connection.new(user, pass, API_URL, connection_options)
+          @connection= StudioApi::Connection.new(user, pass, self.class::API_URL, connection_options)
           StudioApi::Util.configure_studio_connection @connection
         end
 
