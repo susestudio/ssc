@@ -39,7 +39,7 @@ module SSC
             say "Overlay file saved. Id: #{id}"
           end
         end
-        local_copy= initiate_file(file_dir, file_name, id, optional_file_params)
+        local_copy= FileListFile.new.initiate_file(absolute_path, file_params)
         say "Created #{local_copy}"
       end
 

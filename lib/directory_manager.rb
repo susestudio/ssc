@@ -83,6 +83,23 @@ module SSC
           :params    => file_hash.slice("owner", "group", "permissions")}
       end
 
+      def initiate_file(path, options)
+        raise "Unknown file #{path}" unless File.exists?(path)
+        file_path, file_name= File.split(path)
+        file_path ||= options[:path]
+        destination_path= File.join(File.split(@location)[0], file_name)
+        FileUtils.cp(path, destination_path)
+        if options[:id]
+          push("list", {file_name => {
+            "id" => options[:id],
+            "path" => file_path }})
+        else
+          file_params= options.slice(:permissions, :group, :owner).merge(:path => file_path)
+          push("add", {file_name => file_params})
+        end
+        destination_file
+      end
+
       def is_uploaded?(file_name)
         read
         list= @parsed_file["list"].select{|i| i.keys[0] == file_name}
