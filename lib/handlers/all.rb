@@ -11,7 +11,6 @@ module SSC
     class Base < Thor
 
       include Helper
-      include DirectoryManager
 
       API_URL= 'https://susestudio.com/api/v1/user'
 

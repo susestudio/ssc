@@ -11,11 +11,13 @@ module SSC
         params= {:name => appliance_name}
         params.merge!(:arch => options.arch) if options.arch
         appliance= StudioApi::Appliance.clone(options.source_id, params)
-        appliance_dir= self.class.create_appliance_directory(appliance_dir, options.username, options.password, appliance.id)
-         say_array ["Created: ", appliance_dir, 
-         File.join(appliance_dir, 'files'),
-         File.join(appliance_dir, 'repositories'),
-         File.join(appliance_dir, 'software') ]
+        appliance_params= {
+          :username => options.username,
+          :password => options.password,
+          :appliance_id => appliance.id }
+        appliance_dir= ApplianceDirectory.new(appliance_name, appliance_params)
+        appliance_dir.create
+        say_array(["Created: ", appliance_dir.path] + appliance_dir.files.values)
       end
       
       desc "appliance list", "list all appliances"

@@ -51,7 +51,7 @@ module SSC
 
       module InstanceMethods
 
-        include NewDirectoryManager
+        include DirectoryManager
 
 
         # Establish connection to Suse Studio with username, password

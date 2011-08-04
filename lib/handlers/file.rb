@@ -4,7 +4,7 @@ module SSC
   module Handler
     class OverlayFile < Base
 
-      include NewDirectoryManager
+      include DirectoryManager
 
       no_tasks do
         cattr_reader :local_source

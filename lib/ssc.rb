@@ -10,7 +10,7 @@ require 'yaml'
 module SSC
   class Client < Handler::Base
 
-    include NewDirectoryManager
+    include DirectoryManager
 
     register Handler::Appliance, :appliance, "appliance", "manage appliances"
     register Handler::Repository, :repository, "repository","manage repositories"
