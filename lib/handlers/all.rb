@@ -32,6 +32,7 @@ module SSC
   end
 end
 
+require 'build'
 require 'appliance'
 require 'repository'
 require 'package'

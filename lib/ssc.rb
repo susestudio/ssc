@@ -17,8 +17,9 @@ module SSC
     register Handler::Package, :package, "package", "manage packages"
     register Handler::Template, :template, "template", "manage templates"
     register Handler::OverlayFile, :file, "file", "manage files"
+    register Handler::Build, :build, "build", "manage builds"
 
-    desc "status", "show status of the appliance"
+    desc "(general) status", "show status of the appliance"
     require_appliance_id
     def status
       require_appliance_directory do |appliance, files|
@@ -55,7 +56,7 @@ module SSC
       end
     end
 
-    desc "status", "checkout the latest changes to an appliance"
+    desc "(general) checkout", "checkout the latest changes to an appliance"
     require_appliance_id
     def checkout
       params= {:appliance_id => options.appliance_id,
@@ -78,12 +79,12 @@ module SSC
       end
     end
 
-    desc "commit", "commit changes to studio"
+    desc "(general) commit", "commit changes to studio"
     def commit
       params= {:remote       => true,
-               :appliance_id => @appliance_id,
-               :username     => @username,
-               :password     => @password}
+               :appliance_id => options.appliance_id,
+               :username     => options.username,
+               :password     => options.password}
       # Add, Remove, Ban and Unban  Packages
       package_file= PackageFile.new
       ["add", "remove", "ban", "unban"].each do |action|
@@ -114,6 +115,5 @@ module SSC
       end
       file_list.save
     end
-
   end
 end
