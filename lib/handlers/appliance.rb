@@ -24,7 +24,7 @@ module SSC
       require_authorization
       def list
         appliances= StudioApi::Appliance.find(:all)
-        print_table appliances.collect{|i| [i.id, i.name]}
+        print_table([["id", "name"]]+appliances.collect{|i| [i.id, i.name]})
       end
 
       desc "appliance info", "show details of a specific appliance"

@@ -6,7 +6,7 @@ module SSC
 
       desc "build", "build an appliance"
       require_appliance_id
-      method_option :image_type, :type => :string, :required => true
+      method_option :image_type, :type => :string
       def build
         require_appliance_dir do |appliance, files|
           if appliance.status.state != "ok"
@@ -35,6 +35,21 @@ module SSC
         additional_info=(build.state == 'finished' ? "" : " - #{build.percent}")
         say "Build Status: #{build.state}" + additional_info
       end
+
+      desc "list", "list builds (running or completed)"
+      require_appliance_id
+      method_option :running, :type => :boolean, :default => false
+      def list
+        builds= if options.running?
+          StudioApi::RunningBuild.find(:all, :params => {:appliance_id => options.appliance_id})
+        else
+          StudioApi::Build.find(:all, :params => {:appliance_id => options.appliance_id})
+        end
+        say "Build List:\n"
+        print_table([["id", "version", "state"]]+
+                    builds.collect{|i| [i.id, "v#{i.version}", i.state]})
+      end
+
 
     end
   end
