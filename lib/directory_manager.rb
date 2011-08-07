@@ -3,8 +3,8 @@ module SSC
     class LocalStorageFile
 
       def initialize(file_name, path= nil)
-        path = path ? path : File.expand_path('.')
-        @location= File.join(File.expand_path('.'), file_name)
+        path = path ? path : Dir.pwd
+        @location= File.join(path, file_name)
       end
 
       def valid?
@@ -47,6 +47,7 @@ module SSC
 
       def save
         contents= @parsed_file.to_yaml
+        @parsed_file= nil
         File.open(@location, 'w') {|f| f.write contents}
         contents
       end
