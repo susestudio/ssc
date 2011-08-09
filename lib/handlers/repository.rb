@@ -99,6 +99,7 @@ module SSC
       end
 
       desc 'repository import URL NAME', 'import a 3rd party repository into appliance'
+      require_authorization 
       allow_remote_option
       def import(url, name) 
         if options.remote?
