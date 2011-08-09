@@ -80,6 +80,7 @@ module SSC
     end
 
     desc "(general) commit", "commit changes to studio"
+    require_appliance_id
     def commit
       params= {:remote       => true,
                :appliance_id => options.appliance_id,
