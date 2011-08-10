@@ -120,19 +120,19 @@ module SSC
     class << self
       def help(*args)
         message= <<HELP_MESSAGE 
-        Tasks:
-          ssc checkout --appliance-id=N --password=PASSWORD --username=USERNAME  # checkout the latest changes to an appliance
-          ssc commit --appliance-id=N --password=PASSWORD --username=USERNAME    # commit changes to studio
-          ssc status --appliance-id=N --password=PASSWORD --username=USERNAME    # show status of the appliance
+Tasks:
+  ssc checkout --appliance-id=N --password=PASSWORD --username=USERNAME  # checkout the latest changes to an appliance
+  ssc commit --appliance-id=N --password=PASSWORD --username=USERNAME    # commit changes to studio
+  ssc status --appliance-id=N --password=PASSWORD --username=USERNAME    # show status of the appliance
 
-          ssc appliance                                                          # manage appliances
-          ssc build                                                              # manage builds
-          ssc file                                                               # manage files
-          ssc package                                                            # manage packages
-          ssc repository                                                         # manage repositories
-          ssc template                                                           # manage templates
+  ssc appliance                                                          # manage appliances
+  ssc build                                                              # manage builds
+  ssc file                                                               # manage files
+  ssc package                                                            # manage packages
+  ssc repository                                                         # manage repositories
+  ssc template                                                           # manage templates
 
-          ssc help [TASK]                                                        # Describe available tasks or one specific task
+  ssc help [TASK]                                                        # Describe available tasks or one specific task
 HELP_MESSAGE
        puts message
       end
