@@ -19,7 +19,7 @@ module SSC
     register Handler::OverlayFile, :file, "file", "manage files"
     register Handler::Build, :build, "build", "manage builds"
 
-    desc "(general) status", "show status of the appliance"
+    desc "status", "show status of the appliance"
     require_appliance_id
     def status
       require_appliance_directory do |appliance, files|
@@ -56,7 +56,7 @@ module SSC
       end
     end
 
-    desc "(general) checkout", "checkout the latest changes to an appliance"
+    desc "checkout", "checkout the latest changes to an appliance"
     require_appliance_id
     def checkout
       params= {:appliance_id => options.appliance_id,
@@ -79,7 +79,7 @@ module SSC
       end
     end
 
-    desc "(general) commit", "commit changes to studio"
+    desc "commit", "commit changes to studio"
     require_appliance_id
     def commit
       params= {:remote       => true,
