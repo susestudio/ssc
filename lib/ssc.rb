@@ -19,7 +19,7 @@ module SSC
     register Handler::OverlayFile, :file, "file", "manage files"
     register Handler::Build, :build, "build", "manage builds"
 
-    desc "(general) status", "show status of the appliance"
+    desc "status", "show status of the appliance"
     require_appliance_id
     def status
       require_appliance_directory do |appliance, files|
@@ -56,7 +56,7 @@ module SSC
       end
     end
 
-    desc "(general) checkout", "checkout the latest changes to an appliance"
+    desc "checkout", "checkout the latest changes to an appliance"
     require_appliance_id
     def checkout
       params= {:appliance_id => options.appliance_id,
@@ -79,7 +79,7 @@ module SSC
       end
     end
 
-    desc "(general) commit", "commit changes to studio"
+    desc "commit", "commit changes to studio"
     require_appliance_id
     def commit
       params= {:remote       => true,
@@ -120,19 +120,19 @@ module SSC
     class << self
       def help(*args)
         message= <<HELP_MESSAGE 
-        Tasks:
-          ssc checkout --appliance-id=N --password=PASSWORD --username=USERNAME  # checkout the latest changes to an appliance
-          ssc commit --appliance-id=N --password=PASSWORD --username=USERNAME    # commit changes to studio
-          ssc status --appliance-id=N --password=PASSWORD --username=USERNAME    # show status of the appliance
+Tasks:
+  ssc checkout          # checkout the latest changes to an appliance
+  ssc commit            # commit changes to studio
+  ssc status            # show status of the appliance
 
-          ssc appliance                                                          # manage appliances
-          ssc build                                                              # manage builds
-          ssc file                                                               # manage files
-          ssc package                                                            # manage packages
-          ssc repository                                                         # manage repositories
-          ssc template                                                           # manage templates
+  ssc appliance         # manage appliances
+  ssc build             # manage builds
+  ssc file              # manage files
+  ssc package           # manage packages
+  ssc repository        # manage repositories
+  ssc template          # manage templates
 
-          ssc help [TASK]                                                        # Describe available tasks or one specific task
+  ssc help [TASK]       # Describe available tasks or one specific task
 HELP_MESSAGE
        puts message
       end
