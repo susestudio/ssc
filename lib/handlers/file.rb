@@ -27,11 +27,11 @@ module SSC
         file_dir, file_name= File.split(absolute_path)
         file_dir = options.path == '' ? file_dir : options.path
         file_name = options.name == '' ? file_name : options.name
+        file_params= ({:path => file_dir, :filename => file_name})
+        file_params.merge!(optional_file_params)
         id= nil
         if options.remote?
           require_appliance do |appliance|
-            file_params= ({:path => file_dir, :filename => file_name})
-            file_params.merge!(optional_file_params)
             File.open(absolute_path) do |file|
               file= StudioApi::File.upload(file, appliance.id, file_params)
               id= file.id.to_i
@@ -39,8 +39,10 @@ module SSC
             say "Overlay file saved. Id: #{id}"
           end
         end
-        local_copy= FileListFile.new.initiate_file(absolute_path, file_params)
-        say "Created #{local_copy}"
+        if ApplianceDirectory.new.valid?
+          local_copy= FileListFile.new.initiate_file(absolute_path, file_params)
+          say "Created #{local_copy}"
+        end
       end
 
       desc 'file remove FILE_NAME', 'removes existing overlay file'
