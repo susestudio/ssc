@@ -141,6 +141,13 @@ module SSC
       def valid?
 	Dir.exists?(@path) && File.exists?(File.join(@path, '.sscrc'))
       end
+
+      class << self
+        def show_file(relative_path)
+          path= File.join(@path, relative_path)
+          File.read(path)
+        end
+      end
     end
   end
 end
