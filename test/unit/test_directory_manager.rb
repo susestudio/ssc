@@ -1,5 +1,49 @@
 require 'helper'
 
+class TestFileListFile < Test::Unit::TestCase
+  include SSC::DirectoryManager
+  
+  def setup
+    @file_list_file= FileListFile.new
+    @data = {"list"   => [{'file2' => {'path' => '/file/path'}},
+                          {'file1' => {'id'    => 1, 
+                                       'path'  => '/file/path',
+                                       'owner' => 'root',
+                                       'group' => 'root' }}],
+             "add"    => [],
+             "remove" => []}
+    @file_list_file.instance_variable_set('@parsed_file', @data)
+  end
+
+  context "#pop" do
+    should "reformat the file list hash" do
+      assert_equal({:name=>"file1", :full_path=>"/file/path", 
+                    :params=>{"owner"=>"root", "group"=>"root"}}, 
+                   @file_list_file.pop('list'))
+    end
+  end
+
+  context "#initiate_file" do
+    should "create a file and make an entry in the file_list file" do
+      FileUtils.mkdir_p('files')
+      File.open('test_file', 'w') {|f| f.write('test')}
+      @file_list_file.initiate_file('test_file', {'key' => 'value'})
+      assert File.exists? 'files/test_file'
+      FileUtils.rm_rf('files')
+      FileUtils.rm('test_file')
+    end
+  end
+
+  context "#is_uploaded?" do
+    should "return the id if the file is uploaded" do
+      assert_equal 1, @file_list_file.is_uploaded?('file1')
+    end
+    should "return false if file is not uploaded" do
+      assert_equal nil, @file_list_file.is_uploaded?('file2')
+    end
+  end
+end
+
 class TestDirectoryManager < Test::Unit::TestCase
   include SSC::DirectoryManager
 
@@ -40,6 +84,9 @@ class TestDirectoryManager < Test::Unit::TestCase
         assert_equal 4, @file.pop('add')
         assert !@file.instance_variable_get('@parsed_file')["add"].include?(4)
       end
+      should "return nil if the section is empty" do
+        assert_equal nil, @file.pop("empty_section")
+      end
     end
 
     context "#push" do
@@ -54,6 +101,19 @@ class TestDirectoryManager < Test::Unit::TestCase
         should "create and add item to the section" do
           @file.push("empty_section", 1)
           assert @file.instance_variable_get('@parsed_file')["empty_section"] == [1]
+        end
+      end
+    end
+
+    context "#[]" do
+      context "when the section exists" do
+        should "return the list from the section" do
+          assert @file["add"] == [{"sub" => {1 => "one", 2 => "two"}}, 2, 3, 4]
+        end
+      end
+      context "when the section does not exist" do
+        should "return a empty list" do
+          assert @file["empty_section"] == []
         end
       end
     end

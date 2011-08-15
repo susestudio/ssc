@@ -98,13 +98,13 @@ module SSC
           file_params= options.slice(:permissions, :group, :owner).merge(:path => file_path)
           push("add", {file_name => file_params})
         end
-        destination_file
+        destination_path
       end
 
       def is_uploaded?(file_name)
         read
         list= @parsed_file["list"].select{|i| i.keys[0] == file_name}
-        list.length > 0 ? list[0]["id"].to_i : nil
+        list[0][file_name]["id"] if list.length > 0 
       end
 
     end
