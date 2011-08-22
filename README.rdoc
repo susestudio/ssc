@@ -15,9 +15,9 @@ This is the new version of the the Suse Studio command line client. Built as a p
 
 === Command Listing
 
-ssc checkout --appliance-id=N --password=PASSWORD --username=USERNAME  # checkout the latest changes to an appliance
-ssc commit --appliance-id=N --password=PASSWORD --username=USERNAME    # commit changes to studio
-ssc status --appliance-id=N --password=PASSWORD --username=USERNAME    # show status of the appliance
+    ssc checkout --appliance-id=N --password=PASSWORD --username=USERNAME  # checkout the latest changes to an appliance
+    ssc commit --appliance-id=N --password=PASSWORD --username=USERNAME    # commit changes to studio
+    ssc status --appliance-id=N --password=PASSWORD --username=USERNAME    # show status of the appliance
 
 ssc appliance   # manage appliances
 
