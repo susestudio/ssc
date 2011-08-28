@@ -8,7 +8,7 @@ module SSC
       require_appliance_id
       method_option :image_type, :type => :string
       def build
-        require_appliance_dir do |appliance, files|
+        require_appliance_directory do |appliance, files|
           if appliance.status.state != "ok"
             raise Thor::Error, "Appliance is not OK. Please fix before building.\n#{appliance.status.issues.join("\n")}\n"
           else
