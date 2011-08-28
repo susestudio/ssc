@@ -12,7 +12,7 @@ module SSC
 
       include Helper
 
-      API_URL= 'https://susestudio.com/api/v1/user'
+      API_URL= 'https://susestudio.com/api/v2/user'
 
       def initialize(*args)
         super
