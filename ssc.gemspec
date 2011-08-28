@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{ssc}
-  s.version = "0.2.0"
+  s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ratan Sebastian"]
-  s.date = %q{2011-07-20}
+  s.date = %q{2011-08-28}
   s.default_executable = %q{ssc}
   s.description = %q{Command-line client for Suse Studio}
   s.email = %q{rjsvaljean@gmail.com}
@@ -27,20 +27,20 @@ Gem::Specification.new do |s|
     "lib/directory_manager.rb",
     "lib/handlers/all.rb",
     "lib/handlers/appliance.rb",
+    "lib/handlers/build.rb",
     "lib/handlers/file.rb",
     "lib/handlers/helper.rb",
     "lib/handlers/package.rb",
     "lib/handlers/repository.rb",
     "lib/handlers/template.rb",
     "lib/ssc.rb",
-    "test/handlers/test_appliance.rb",
-    "test/handlers/test_helper.rb",
-    "test/handlers/test_repository.rb",
-    "test/handlers/test_template.rb",
+    "ssc.gemspec",
     "test/helper.rb",
-    "test/test_argument_parser.rb",
-    "test/test_directory_manager.rb",
-    "test/test_ssc.rb"
+    "test/integration/test_appliance.rb",
+    "test/integration/test_file.rb",
+    "test/integration/test_package.rb",
+    "test/integration/test_repository.rb",
+    "test/unit/test_directory_manager.rb"
   ]
   s.homepage = %q{http://github.com/rjsvaljean/ssc}
   s.licenses = ["MIT"]
