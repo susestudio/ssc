@@ -77,11 +77,13 @@ module SSC
 
       def pop(section)
         file_hash= super(section)
-        file_name= file_hash.keys[0]
-        file_hash= file_hash[file_name]
-        { :name      => file_name,
-          :full_path => File.join(file_hash["path"]),
-          :params    => file_hash.slice("owner", "group", "permissions")}
+        if file_hash
+          file_name= file_hash.keys[0]
+          file_hash= file_hash[file_name]
+          { :name      => file_name,
+            :full_path => File.join(file_hash["path"]),
+            :params    => file_hash.slice("owner", "group", "permissions")}
+        end
       end
 
       def initiate_file(path, options)
