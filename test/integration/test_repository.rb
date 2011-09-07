@@ -21,7 +21,7 @@ class TestRepository < Test::Unit::TestCase
 
     context "search" do
       setup do
-        @default_mock_repo.stubs(:matches).returns(stub(:software_name => ''))
+        @default_mock_repo.stubs(:matches).returns(stub(:attributes => ''))
         StudioApi::Repository.expects(:find).with(:all, has_entry(:params, {:filter => 'search_string'})).returns([@default_mock_repo])
       end
       should "search all repos" do
