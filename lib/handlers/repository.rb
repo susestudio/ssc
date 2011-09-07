@@ -38,10 +38,13 @@ module SSC
         params= {:filter => search_string}
         params= params.merge({:base_system => options.base_system}) if options.base_system
         repos= StudioApi::Repository.find(:all, :params => params)
-        say_array(repos.collect do |repo|
-          "#{repo.id}.) #{repo.name}: #{repo.base_url}
-          #{[repo.matches.software_name].flatten.join(', ')}\n"
-        end)
+        repos.collect do |repo|
+          # for some reason some repos don't have a base_url
+          if repo.respond_to?('base_url')
+            say "#{repo.id}.) #{repo.name}: #{repo.base_url}
+            #{[repo.matches.attributes["software_name"]].flatten.join(', ')}\n"
+          end
+        end
       end
 
       desc "repository list", "list all repositories in a given appliance"
