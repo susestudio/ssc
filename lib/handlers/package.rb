@@ -50,8 +50,8 @@ module SSC
         require_appliance do |appliance|
           params= {:all_repos => options.all_repos} if options.all_repos
           software= appliance.search_software(search_string, params)
-          say_array software.collect do |software|
-            "#{software.name} v#{software.version}. Repo Id: #{software.repository_id}"
+          software.collect do |software|
+            say "#{software.name} v#{software.version}. Repo Id: #{software.repository_id}"
           end
         end
       end
