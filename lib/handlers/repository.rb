@@ -74,7 +74,7 @@ module SSC
         if options.remote?
           require_appliance do |appliance|
             response= appliance.add_repository(repo_ids)
-            say "Added"+( response.collect{|repos| repos.name} ).join(", ")
+            say "Added "+( response.collect{|repos| repos.name} ).join(", ")
           end
         else
           repo_file= RepositoryFile.new
