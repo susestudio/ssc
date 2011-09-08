@@ -16,9 +16,9 @@ module SSC
         def require_authorization
           config= get_config
           method_option :username, :type => :string, :required => true, 
-            :default => config["username"]
+            :default => config["username"], :aliases => "-u"
           method_option :password, :type => :string, :required => true, 
-            :default => config["password"]
+            :default => config["password"], :aliases => "-p"
           method_option :proxy, :type => :string
           method_option :timeout, :type => :string
         end
