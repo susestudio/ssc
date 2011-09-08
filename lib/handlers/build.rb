@@ -45,12 +45,24 @@ module SSC
         else
           StudioApi::Build.find(:all, :params => {:appliance_id => options.appliance_id})
         end
+        
         say "Build List:\n"
-        print_table([["id", "version", "state"]]+
-                    builds.collect{|i| [i.id, "v#{i.version}", i.state]})
+        builds_info = builds.collect{ |i|
+          [i.id, "v#{i.version}", i.state, format_download_url(i)]
+        }
+                    
+        print_table([["id", "version", "state", "download link"]]+ builds_info)
       end
 
+      private
 
+      def format_download_url build
+        if build.respond_to?(:download_url)
+          build.download_url
+        else
+          "n\\a"
+        end
+      end
     end
   end
 end
