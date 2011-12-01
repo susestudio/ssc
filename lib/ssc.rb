@@ -1,6 +1,8 @@
 module SSC
 end
 
+require 'rubygems'
+
 require 'thor'
 require 'thor/group'
 require 'directory_manager'
