@@ -49,7 +49,7 @@ module SSC
         # Show banned
         say "\nBanned Packages : \n"
         say_array files[:package]["ban"]
-      
+
         # Show unbanned
         say "\nUnBanned Packages : \n"
         say_array files[:package]["unban"]
@@ -60,8 +60,9 @@ module SSC
     require_appliance_id
     def checkout
       params= {:appliance_id => options.appliance_id,
-               :username     => options.username,
-               :password     => options.password}
+        :username     => options.username,
+        :password     => options.password,
+        :server => options.server}
       require_appliance_directory do |appliance, files|
         options= params.merge(:remote => true)
         invoke "s_s_c:handler:package:list", ["installed"], options
@@ -83,9 +84,10 @@ module SSC
     require_appliance_id
     def commit
       params= {:remote       => true,
-               :appliance_id => options.appliance_id,
-               :username     => options.username,
-               :password     => options.password}
+        :appliance_id => options.appliance_id,
+        :username     => options.username,
+        :password     => options.password,
+        :server => options.server}
       # Add, Remove, Ban and Unban  Packages
       package_file= PackageFile.new
       ["add", "remove", "ban", "unban"].each do |action|

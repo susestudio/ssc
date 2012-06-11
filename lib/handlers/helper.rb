@@ -15,6 +15,10 @@ module SSC
       module ClassMethods
         def require_authorization
           config= get_config
+					server = 'susestudio.com'
+					server = config["server"] if config["server"]
+          method_option :server, :type => :string, :required => false, 
+            :default => server
           method_option :username, :type => :string, :required => true, 
             :default => config["username"]
           method_option :password, :type => :string, :required => true, 
@@ -55,8 +59,9 @@ module SSC
 
 
         # Establish connection to Suse Studio with username, password
-        def connect(user, pass, connection_options)
-          @connection= StudioApi::Connection.new(user, pass, self.class::API_URL, connection_options)
+        def connect(user, pass, server, connection_options)
+					api_url = "https://#{server}/api/v2/user"
+          @connection= StudioApi::Connection.new(user, pass, api_url, connection_options)
           StudioApi::Util.configure_studio_connection @connection
         end
 
