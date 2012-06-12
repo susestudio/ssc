@@ -1,3 +1,5 @@
+require 'active_support/core_ext'
+
 module SSC
   module Handler
     class Appliance < Base
@@ -62,6 +64,23 @@ module SSC
             say "Appliance Ok"
           end
         end
+      end
+
+      desc "appliance diff", "returns difference between RPMs installed on current machine and Studio configuration"
+      #require_appliance_id
+      def diff
+         packages_file = PackageFile.new
+         studio_config= packages_file.read
+         ap studio_config
+         
+         #a = `rpm -qa --qf '%{NAME}#%{VERSION}$'`.split('$').sort
+         #b = a.map {|el| el.split('#')}
+         #local_packages = Hash[b]
+         
+         #c = local_packages.diff(studio_config)
+         
+         #ap packages.read
+         #ap c
       end
 
       private
