@@ -6,7 +6,7 @@ module SSC
 
       desc "build", "build an appliance"
       require_appliance_id
-      method_option :image_type, :type => :string
+      method_option :image_type, :type => :string, :required => true
       def build
         require_appliance_directory do |appliance, files|
           if appliance.status.state != "ok"
