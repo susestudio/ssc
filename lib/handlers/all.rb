@@ -1,4 +1,5 @@
 require 'studio_api'
+require "awesome_print"
 
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
@@ -9,7 +10,7 @@ require 'helper'
 module SSC
   module Handler
     class Base < Thor
-
+      
       include Helper
 
       API_URL= 'https://susestudio.com/api/v2/user'

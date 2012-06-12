@@ -10,6 +10,7 @@ GEM
     activesupport (3.2.5)
       i18n (~> 0.6)
       multi_json (~> 1.0)
+    awesome_print (1.0.2)
     builder (3.0.0)
     git (1.2.5)
     i18n (0.6.0)
@@ -31,6 +32,10 @@ GEM
       shoulda-matchers (~> 1.0.0)
     shoulda-context (1.0.0)
     shoulda-matchers (1.0.0)
+    simplecov (0.6.4)
+      multi_json (~> 1.0)
+      simplecov-html (~> 0.5.3)
+    simplecov-html (0.5.3)
     studio_api (3.2.0)
       activeresource (>= 2.3.8)
       xml-simple (>= 1.0.0)
@@ -41,10 +46,12 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  awesome_print
   bundler
   jeweler
   json
   mocha
   shoulda
+  simplecov
   studio_api (>= 3.1.2)
   thor (>= 0.14.6)

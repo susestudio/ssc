@@ -9,7 +9,6 @@ require 'yaml'
 
 module SSC
   class Client < Handler::Base
-
     include DirectoryManager
 
     register Handler::Appliance, :appliance, "appliance", "manage appliances"
@@ -26,12 +25,12 @@ module SSC
         # Show appliance status
         say "Appliance: id: #{appliance.id} | name: #{appliance.name}"
         say "Status: #{appliance.status.state}"
-        say appliance.status.issues
-
+        say appliance.status.issues        
+        
         # Show additions
         say "\nAdditions : \n"
         say "\nPackages : \n"
-        say_array files[:package]["add"]
+        say_array files[:package]["add"] # Why not use invoke "s_s_c:handler:package:list", ["installed"]?
         say "\nRepositories : \n"
         say_array files[:repository]["add"]
         say "\nOverlay Files : \n"
