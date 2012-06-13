@@ -101,7 +101,7 @@ module SSC
           if options.appliance_id
             yield(StudioApi::Appliance.find(options.appliance_id))
           else
-            raise "Unable to find the appliance"
+            raise Thor::Error, "Unable to find the appliance"
           end
         end
 

@@ -91,10 +91,14 @@ module SSC
         :server => options.server}
       # Add, Remove, Ban and Unban  Packages
       package_file= PackageFile.new
+      packages = {}
       ["add", "remove", "ban", "unban"].each do |action|
+        packages[action] = Array.new
         while package= package_file.pop(action)
-          invoke "s_s_c:handler:package:#{action}", [package], params
+          packages[action] << package
         end
+        
+        invoke "s_s_c:handler:package:#{action}", packages[action], params
       end
       package_file.save
 

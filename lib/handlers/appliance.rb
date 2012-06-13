@@ -1,3 +1,5 @@
+require 'active_support/core_ext'
+
 module SSC
   module Handler
     class Appliance < Base
@@ -65,6 +67,35 @@ module SSC
         end
       end
 
+      desc "appliance diff", "returns difference between RPMs installed on current machine and Studio configuration"
+      def diff
+         # get list of installed packages
+         rpm_output = `rpm -qa --qf '%{NAME}#%{VERSION}-%{RELEASE}$'`.split('$').sort # TODO: bug check exit code
+         local_packages = Hash[rpm_output.map {|el| el.split('#')}]
+  	     
+	     # read studio packages yaml and convert to RPM hash format
+         studio_packages = {}
+         package_file= PackageFile.new
+         
+         package_file.read["list"].map{|hash| hash.map{|k,v| studio_packages[k] = v["version"] }}
+         studio_packages =  Hash[studio_packages.sort]
+         diff = local_packages.diff(studio_packages)
+         
+         rpms = []
+         diff.map do |k,v|
+            package = { :name => k, :options => Hash[:version,v]}
+            rpms << package
+         end
+         
+         say "You have #{diff.count} packages that differ from SUSE Studio application configuration:\n"
+         rpms.each_with_index{|p, n| say "#{n+1} #{p[:name]}-#{p[:options][:version]}"}
+         
+         rpms.each{|e| package_file.push('add', e)}
+         package_file.save
+         
+         say "\n\033[32m#{diff.count} packages successfully added to software configuration file\033[0m"
+      end
+      
       private
 
       def download_url(appliance)
@@ -74,6 +105,11 @@ module SSC
           appliance.builds.last.download_url
         end
       end
+      
     end
   end
 end
+
+
+
+

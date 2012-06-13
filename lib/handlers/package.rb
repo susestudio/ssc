@@ -83,27 +83,33 @@ module SSC
       require_appliance_id
       allow_remote_option
       def add(*names)
-        names.each do |name|
+        names.each do |package|
           if options.remote?
-            say "#{name}"
             require_appliance do |appliance|
-              response= appliance.add_package(name)
-              say case response['state']
-              when "changed"
-                "Package #{name} added. State: #{response['state']}."
-              when "equal"
-                "Package #{name} not added."
-              when "broken"
-                "Package #{name} added. State: #{response['state']}. Please resolve dependencies."
+              if package.is_a?(Hash)
+                response= appliance.add_package(package[:name], package[:options])
               else
-                "unknown code"
+                response= appliance.add_package(package)
+              end
+           
+              package = (package.is_a?(String))? package : "#{package[:name]}-#{package[:options][:version]}"
+  
+              say case response['state']
+              when "changed"              
+                "\033[32mPackage #{package} added. State: #{response['state']}\033[0m"
+              when "equal"
+                "Package '#{package}' is equal to the package in the SUSE Studio appliance configuration. State: #{response['state']}"
+              when "broken"
+                "\033[31mPackage #{package} added. State: #{response['state']} . Please resolve dependencies\033[0m"
+              else
+                "\033[31munknown code\033[0m"
               end
             end
           else
             package_file= PackageFile.new
-            package_file.push('add', name)
+            package_file.push('add', package)
             package_file.save
-            say "#{name} marked for addition"
+            say "#{package} marked for addition"
           end
         end
       end
