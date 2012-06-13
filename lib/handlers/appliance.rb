@@ -18,6 +18,7 @@ module SSC
         appliance_dir= ApplianceDirectory.new(appliance_name, appliance_params)
         appliance_dir.create
         say_array(["Created: ", appliance_dir.path] + appliance_dir.files.values)
+        say "" # make sure terminal output starts on a new line
       end
       
       desc "appliance list", "list all appliances"

@@ -1,6 +1,8 @@
 module SSC
 end
 
+require 'rubygems'
+
 require 'thor'
 require 'thor/group'
 require 'directory_manager'
@@ -104,6 +106,15 @@ module SSC
         end
       end
       repository_file.save
+
+      # Add, Remove, Ban and Unban  Packages
+      package_file= PackageFile.new
+      ["add", "remove", "ban", "unban"].each do |action|
+        while package= package_file.pop(action)
+          invoke "s_s_c:handler:package:#{action}", [package], params
+        end
+      end
+      package_file.save
 
       # Add Overlay Files
       file_list = FileListFile.new

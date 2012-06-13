@@ -50,8 +50,8 @@ module SSC
         require_appliance do |appliance|
           params= {:all_repos => options.all_repos} if options.all_repos
           software= appliance.search_software(search_string, params)
-          say_array software.collect do |software|
-            "#{software.name} v#{software.version}. Repo Id: #{software.repository_id}"
+          software.collect do |software|
+            say "#{software.name} v#{software.version}. Repo Id: #{software.repository_id}"
           end
         end
       end
@@ -79,81 +79,96 @@ module SSC
         say out.to_yaml
       end
 
-
-      desc 'package add NAME', 'add a package to the appliance'
+      desc 'package add NAMES', 'add packages to the appliance'
       require_appliance_id
       allow_remote_option
-      def add(name)
-        if options.remote?
-          require_appliance do |appliance|
-            response= appliance.add_package(name)
-            say case response['state']
-            when "changed"
-              "Package Added. State: #{response['state']}"
-            when "equal"
-              "Package Not Added."
-            when "broken"
-              "Package Added. State: #{response['state']}. Please resolve dependencies"
-            else
-              "unknown code"
+      def add(*names)
+        names.each do |name|
+          if options.remote?
+            say "#{name}"
+            require_appliance do |appliance|
+              response= appliance.add_package(name)
+              say case response['state']
+              when "changed"
+                "Package #{name} added. State: #{response['state']}."
+              when "equal"
+                "Package #{name} not added."
+              when "broken"
+                "Package #{name} added. State: #{response['state']}. Please resolve dependencies."
+              else
+                "unknown code"
+              end
             end
+          else
+            package_file= PackageFile.new
+            package_file.push('add', name)
+            package_file.save
+            say "#{name} marked for addition"
           end
-        else
-          package_file= PackageFile.new
-          package_file.push('add', name)
-          package_file.save
-          say "#{name} marked for addition"
         end
       end
 
-      desc 'package remove NAME', 'remove a package from the appliance'
+      desc 'package remove NAMES', 'remove packages from the appliance'
       require_appliance_id
       allow_remote_option
-      def remove(name)
-        if options.remote?
-          require_appliance do |appliance|
-            response= appliance.remove_package(name)
-            say "State: #{response['state']}"
+      def remove(*names)
+        names.each do |name|
+          if options.remote?
+            require_appliance do |appliance|
+              response= appliance.remove_package(name)
+              say case response['state']
+              when "changed"
+                "Package #{name} removed. State: #{response['state']}."
+              when "equal"
+                "Package #{name} not removed."
+              else
+                "unknown code"
+              end
+            end
+          else
+            package_file= PackageFile.new
+            package_file.push('remove', name)
+            package_file.save
+            say "#{name} marked for removal"
           end
-        else
-          package_file= PackageFile.new
-          package_file.push('remove', name)
-          package_file.save
-          say "#{name} marked for removal"
         end
       end
 
-      desc 'package ban NAME', 'ban a package from the appliance'
+      desc 'package ban NAMES', 'ban packages from the appliance'
       require_appliance_id
       allow_remote_option
-      def ban(name)
-        if options.remote?
-          require_appliance do |appliance|
-            response= appliance.ban_package(name)
-            response.collect{|key, val| "#{key}: #{val}"}
+      def ban(*names)
+        names.each do |name|
+          if options.remote?
+            require_appliance do |appliance|
+              response= appliance.ban_package(name)
+              response.collect{|key, val| "#{key}: #{val}"}
+            end
+          else
+            package_file= PackageFile.new
+            package_file.push('ban', name)
+            package_file.save
+            say "#{name} marked to be banned"
           end
-        else
-          package_file= PackageFile.new
-          package_file.push('ban', name)
-          package_file.save
-          say "#{name} marked to be banned"
         end
       end
 
-      desc 'package unban NAME', 'unban a package for the appliance'
+      desc 'package unban NAMES', 'unban packages for the appliance'
       require_appliance_id
       allow_remote_option
-      def unban(name)
-        if options.remote?
-          require_appliance do |appliance|
-            response= appliance.unban_package(name)
-            response.collect{|key, val| "#{key}: #{val}"}
+      def unban(*names)
+        names.each do |name|
+          if options.remote?
+            require_appliance do |appliance|
+              response= appliance.unban_package(name)
+              response.collect{|key, val| "#{key}: #{val}"}
+            end
+          else
+            package_file= PackageFile.new
+            package_file.push('unban', name)
+            package_file.save
+            say "#{name} marked to be unbanned"
           end
-        else
-          package_file= PackageFile.new
-          package_file.push('unban', name)
-          package_file.save
-          say "#{name} marked to be unbanned"
         end
       end
     end

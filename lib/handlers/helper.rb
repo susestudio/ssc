@@ -30,7 +30,6 @@ module SSC
             method_option :password, :type => :string, :required => true, 
               :default => config["password"]
           end
-
           method_option :proxy, :type => :string
           method_option :timeout, :type => :string
         end
