@@ -88,7 +88,7 @@ module SSC
           require_appliance do |appliance|
             response= appliance.add_package(name)
             say case response['state']
-            when "fixed"
+            when "changed"
               "Package Added. State: #{response['state']}"
             when "equal"
               "Package Not Added."
