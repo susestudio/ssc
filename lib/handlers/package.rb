@@ -86,13 +86,8 @@ module SSC
       def add(name, *package_options)
         if options.remote?
           require_appliance do |appliance|
-            ap "Package name in add package is #{name.inspect}"
-            ap "Package options in add package are #{package_options.inspect}"
-            if options
-                p response= appliance.add_package(name, package_options.first)
-            else
-                p response= appliance.add_package(name)
-            end
+            package_options = (package_options.nil?)? package_options.first : {}
+            response= appliance.add_package(name, *package_options)
             
             say case response['state']
             when "changed"

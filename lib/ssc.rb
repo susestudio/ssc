@@ -91,9 +91,8 @@ module SSC
       package_file= PackageFile.new
       ["add", "remove", "ban", "unban"].each do |action|
         while package= package_file.pop(action)
-          ap "Packge #{package}"
-          ap "Oprions are #{package[:options]}"
-          p invoke "s_s_c:handler:package:#{action}", [package[:name], package[:options]], params
+          package = package.is_a?(Hash)? [package[:name], package[:options]] : [package]
+          invoke "s_s_c:handler:package:#{action}", package, params
         end
       end
       package_file.save
