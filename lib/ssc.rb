@@ -93,6 +93,8 @@ module SSC
         while package= package_file.pop(action)
           package = package.is_a?(Hash)? [package[:name], package[:options]] : [package]
           invoke "s_s_c:handler:package:#{action}", package, params
+          #Workaround of one time invocation issue, see http://stackoverflow.com/questions/4331267/call-task-more-than-once-in-rails-3-generator
+          @_invocations.delete(SSC::Handler::Package)
         end
       end
       package_file.save
