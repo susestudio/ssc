@@ -93,6 +93,7 @@ module SSC
         while package= package_file.pop(action)
           package = package.is_a?(Hash)? [package[:name], package[:options]] : [package]
           invoke "s_s_c:handler:package:#{action}", package, params
+          @_invocations.delete(SSC::Handler::Package)
         end
       end
       package_file.save
