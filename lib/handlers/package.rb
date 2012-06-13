@@ -86,19 +86,23 @@ module SSC
       def add(name, *package_options)
         if options.remote?
           require_appliance do |appliance|
-            package_options = (package_options.nil?)? package_options.first : {}
-            response= appliance.add_package(name, *package_options)
+            package_options = (package_options.blank?)? {} : package_options.first
+            response= appliance.add_package(name, package_options)
+         
+            package = (package_options.blank?)? name : "#{name}-#{package_options[:version]}"
             
             say case response['state']
-            when "changed"
-              "Package Added. State: #{response['state']}"
+            when "changed"              
+              "\033[32mPackage #{package} added. State: #{response['state']}\033[0m"
             when "equal"
-              "Package Not Added."
+              "Package '#{package}' is equal to the package in the SUSE Studio appliance configuration\n"
             when "broken"
-              "Package Added. State: #{response['state']}. Please resolve dependencies"
+              "\033[31mPackage #{package} added. State: #{response['state']} . Please resolve dependencies\033[0m"
             else
-              "unknown code"
+              "\033[31munknown code\033[0m"
             end
+            
+            
           end
         else
           package_file= PackageFile.new

@@ -67,35 +67,32 @@ module SSC
       end
 
       desc "appliance diff", "returns difference between RPMs installed on current machine and Studio configuration"
-      #require_appliance_id
       def diff
-         p "******************** RPM LIST ***********************"
          # get list of installed packages
          rpm_output = `rpm -qa --qf '%{NAME}#%{VERSION}-%{RELEASE}$'`.split('$').sort
          local_packages = Hash[rpm_output.map {|el| el.split('#')}]
   	     
-	     p "******************** STUDIO CONFIG ******************"
 	     # read studio packages yaml and convert to RPM hash format
          studio_packages = {}
          package_file= PackageFile.new
          
-         package_file.read["list"].map{|hash| hash.map{|k,v| studio_packages[k] = v['version'] }}
+         package_file.read["list"].map{|hash| hash.map{|k,v| studio_packages[k] = v["version"] }}
          studio_packages =  Hash[studio_packages.sort]
-                  
-         p "******************** DIFFERENCE *********************"
-         ap diff = local_packages.diff(studio_packages)
+         diff = local_packages.diff(studio_packages)
          
-         a = []
+         rpms = []
          diff.map do |k,v|
-            package = { :name => k, :options => Hash["version",v]}
-            a << package
+            package = { :name => k, :options => Hash[:version,v]}
+            rpms << package
          end
          
-         ap package_file.read["list"].first
-         ap a.first
+         say "You have #{diff.count} packages that differ from SUSE Studio application configuration:\n"
+         rpms.each_with_index{|p, n| say "#{n+1} #{p[:name]}-#{p[:options][:version]}"}
          
-         a.each{|e| package_file.push('add', e)}
+         rpms.each{|e| package_file.push('add', e)}
          package_file.save
+         
+         say "\n\033[32m#{diff.count} packages successfully added to software configuration file\033[0m"
       end
       
       private
