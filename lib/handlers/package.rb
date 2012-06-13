@@ -83,12 +83,19 @@ module SSC
       desc 'package add NAME', 'add a package to the appliance'
       require_appliance_id
       allow_remote_option
-      def add(name)
+      def add(name, *package_options)
         if options.remote?
           require_appliance do |appliance|
-            response= appliance.add_package(name)
+            ap "Package name in add package is #{name.inspect}"
+            ap "Package options in add package are #{package_options.inspect}"
+            if options
+                p response= appliance.add_package(name, package_options.first)
+            else
+                p response= appliance.add_package(name)
+            end
+            
             say case response['state']
-            when "fixed"
+            when "changed"
               "Package Added. State: #{response['state']}"
             when "equal"
               "Package Not Added."

@@ -71,35 +71,31 @@ module SSC
       def diff
          p "******************** RPM LIST ***********************"
          # get list of installed packages
-         rpm_list = `rpm -qa --qf '%{NAME}#%{VERSION}-%{RELEASE}$'`.split('$').sort
-         local_packages = Hash[rpm_list.map {|el| el.split('#')}]
-         #p local_packages
+         rpm_output = `rpm -qa --qf '%{NAME}#%{VERSION}-%{RELEASE}$'`.split('$').sort
+         local_packages = Hash[rpm_output.map {|el| el.split('#')}]
   	     
 	     p "******************** STUDIO CONFIG ******************"
 	     # read studio packages yaml and convert to RPM hash format
-         studio_config = {}
+         studio_packages = {}
+         package_file= PackageFile.new
          
-         PackageFile.new().read["list"].map{|hash| hash.map{|k,v| studio_config[k] = v['version'] }}
-         studio_config =  Hash[studio_config.sort]
-         #p studio_config
-         
+         package_file.read["list"].map{|hash| hash.map{|k,v| studio_packages[k] = v['version'] }}
+         studio_packages =  Hash[studio_packages.sort]
+                  
          p "******************** DIFFERENCE *********************"
-         diff = local_packages.diff(studio_config)
+         ap diff = local_packages.diff(studio_packages)
          
+         a = []
+         diff.map do |k,v|
+            package = { :name => k, :options => Hash["version",v]}
+            a << package
+         end
          
-# CONVERT TO YAML HASH
-#          hash = {}
-#          rpm_list = `rpm -qa --qf '%{NAME}#%{VERSION}-%{RELEASE}$'`.split('$').sort
-#          rpm_list.each{|e| hash[e.split('#').first] = Hash["version", e.split('#').last]}
-#          rpm_list_hash = hash.collect{|k, v| Hash[k,v]}
-#          ap rpm_list_hash.class
-#          ap PackageFile.new().read["list"].class
-#          
-#          ap rpm_list_hash.count
-#          ap PackageFile.new().read["list"].count
-#          
-#          ap PackageFile.new().read["list"] - rpm_list_hash
+         ap package_file.read["list"].first
+         ap a.first
          
+         a.each{|e| package_file.push('add', e)}
+         package_file.save
       end
       
       private
