@@ -69,20 +69,39 @@ module SSC
       desc "appliance diff", "returns difference between RPMs installed on current machine and Studio configuration"
       #require_appliance_id
       def diff
-         packages_file = PackageFile.new
-         studio_config= packages_file.read
-         ap studio_config
+         p "******************** RPM LIST ***********************"
+         # get list of installed packages
+         rpm_list = `rpm -qa --qf '%{NAME}#%{VERSION}-%{RELEASE}$'`.split('$').sort
+         local_packages = Hash[rpm_list.map {|el| el.split('#')}]
+         #p local_packages
+  	     
+	     p "******************** STUDIO CONFIG ******************"
+	     # read studio packages yaml and convert to RPM hash format
+         studio_config = {}
          
-         #a = `rpm -qa --qf '%{NAME}#%{VERSION}$'`.split('$').sort
-         #b = a.map {|el| el.split('#')}
-         #local_packages = Hash[b]
+         PackageFile.new().read["list"].map{|hash| hash.map{|k,v| studio_config[k] = v['version'] }}
+         studio_config =  Hash[studio_config.sort]
+         #p studio_config
          
-         #c = local_packages.diff(studio_config)
+         p "******************** DIFFERENCE *********************"
+         diff = local_packages.diff(studio_config)
          
-         #ap packages.read
-         #ap c
+         
+# CONVERT TO YAML HASH
+#          hash = {}
+#          rpm_list = `rpm -qa --qf '%{NAME}#%{VERSION}-%{RELEASE}$'`.split('$').sort
+#          rpm_list.each{|e| hash[e.split('#').first] = Hash["version", e.split('#').last]}
+#          rpm_list_hash = hash.collect{|k, v| Hash[k,v]}
+#          ap rpm_list_hash.class
+#          ap PackageFile.new().read["list"].class
+#          
+#          ap rpm_list_hash.count
+#          ap PackageFile.new().read["list"].count
+#          
+#          ap PackageFile.new().read["list"] - rpm_list_hash
+         
       end
-
+      
       private
 
       def download_url(appliance)
@@ -92,6 +111,11 @@ module SSC
           appliance.builds.last.download_url
         end
       end
+      
     end
   end
 end
+
+
+
+
