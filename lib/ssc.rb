@@ -69,7 +69,7 @@ module SSC
         invoke "s_s_c:handler:package:list", ["installed"], options
         invoke "s_s_c:handler:repository:list",  [], options
         invoke "s_s_c:handler:overlay_file:list",  [], options
-        say "Appliance \"#{appliance.name}\" checked out successfully.", :green
+        say "Appliance \"#{appliance.name}\" checked out successfully.", :green if @_invocations[SSC::Client] == ["checkout"]
       end
     rescue ApplianceDirectoryError
       require_appliance do |appliance|
