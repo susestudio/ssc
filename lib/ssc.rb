@@ -1,6 +1,8 @@
 module SSC
 end
 
+require 'rubygems'
+
 require 'thor'
 require 'thor/group'
 require 'directory_manager'
@@ -90,10 +92,14 @@ module SSC
         :server => options.server}
       # Add, Remove, Ban and Unban  Packages
       package_file= PackageFile.new
-      ["add", "remove", "ban", "unban"].each do |action|
+      packages = {}
+      ["remove", "add", "ban", "unban"].each do |action|
+        packages[action] = Array.new
         while package= package_file.pop(action)
-          invoke "s_s_c:handler:package:#{action}", [package], params
+          packages[action] << package
         end
+        
+        invoke "s_s_c:handler:package:#{action}", packages[action], params
       end
       package_file.save
 
@@ -105,6 +111,16 @@ module SSC
         end
       end
       repository_file.save
+
+#       # Add, Remove, Ban and Unban  Packages
+#       package_file= PackageFile.new
+#       # Important for downgrade you have to remove package and add new version afterwards
+#       ["remove", "add", "ban", "unban"].each do |action|
+#         while package= package_file.pop(action)
+#           invoke "s_s_c:handler:package:#{action}", [package], params
+#         end
+#       end
+#       package_file.save
 
       # Add Overlay Files
       file_list = FileListFile.new
