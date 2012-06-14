@@ -117,7 +117,7 @@ module SSC
 
       def initialize(name= '', options = {})
         @name= name
-	@path= File.join(Dir.pwd, name)
+        @path= File.join(Dir.pwd, name)
         @files = if Dir.exist?(@path)
                    {:package   => PackageFile.new(@path),
                    :repository => RepositoryFile.new(@path),
@@ -141,7 +141,7 @@ module SSC
       end
 
       def valid?
-	Dir.exists?(@path) && File.exists?(File.join(@path, '.sscrc'))
+        Dir.exists?(@path) && File.exists?(File.join(@path, '.sscrc'))
       end
 
       class << self

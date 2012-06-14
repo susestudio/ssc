@@ -71,7 +71,9 @@ module SSC
       def diff
          # get list of installed packages
          rpm_output = `rpm -qa --qf '%{NAME}#%{VERSION}-%{RELEASE}$'`.split('$').sort # TODO: bug check exit code
-         local_packages = Hash[rpm_output.map {|el| el.split('#')}]
+         rpm_output.delete_if {|x| x["gpg-pubkey"] } # remove SUSE gpg-pubkey package
+         
+         local_packages = Hash[rpm_output.map {|e| e.split('#')}]         
   	     
 	     # read studio packages yaml and convert to RPM hash format
          studio_packages = {}
@@ -79,7 +81,23 @@ module SSC
          
          package_file.read["list"].map{|hash| hash.map{|k,v| studio_packages[k] = v["version"] }}
          studio_packages =  Hash[studio_packages.sort]
+         
+         p "Diffrence local - studio: #{local_packages.compare(studio_packages).count}"
+         # return Hash with package name as a key and versions [local, studio]
+         ap local_packages.compare(studio_packages)
+         
+         
+         p "Diffrence studio - local: #{studio_packages.compare(local_packages).count}"
+         # sas
+         
+         ap (studio_packages.to_a - local_packages.to_a).first
+                     
+         p "================================================"      
+         p "Studio: #{studio_packages.to_a.count}"
+         p "Local: #{local_packages.to_a.count}"
+         
          diff = local_packages.diff(studio_packages)
+         ap diff.first
          
          rpms = []
          diff.map do |k,v|
@@ -87,13 +105,18 @@ module SSC
             rpms << package
          end
          
+         
+                 
          say "You have #{diff.count} packages that differ from SUSE Studio application configuration:\n"
-         rpms.each_with_index{|p, n| say "#{n+1} #{p[:name]}-#{p[:options][:version]}"}
+         #rpms.each_with_index{|p, n| say "#{n+1} #{p[:name]}-#{p[:options][:version]}"}
          
-         rpms.each{|e| package_file.push('add', e)}
-         package_file.save
+         # TODO: Compare the version, take the local package version and add package to Studio
+         #rpms.each{|e| package_file.push('add', e)}
+         #package_file.save
          
-         say "\n\033[32m#{diff.count} packages successfully added to software configuration file\033[0m"
+         #say "\n\033[32m#{diff.count} packages successfully added to software configuration file\033[0m"
+         
+         
       end
       
       private
@@ -111,5 +134,15 @@ module SSC
 end
 
 
+class Hash
+  def compare(other)
+    self.keys.inject({}) do |memo, key|
+      unless self[key] == other[key]
+        memo[key] = [self[key], other[key]] 
+      end
+      memo
+    end
+  end
+end
 
 
