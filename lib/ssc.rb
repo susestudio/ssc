@@ -85,11 +85,12 @@ module SSC
     desc "commit", "commit changes to studio"
     require_appliance_id
     def commit
-      params= {:remote       => true,
+      params= {:remote => true,
         :appliance_id => options.appliance_id,
         :username     => options.username,
         :password     => options.password,
         :server => options.server}
+
       # Add, Remove, Ban and Unban  Packages
       package_file= PackageFile.new
       packages = {}
@@ -112,16 +113,6 @@ module SSC
       end
       repository_file.save
 
-#       # Add, Remove, Ban and Unban  Packages
-#       package_file= PackageFile.new
-#       # Important for downgrade you have to remove package and add new version afterwards
-#       ["remove", "add", "ban", "unban"].each do |action|
-#         while package= package_file.pop(action)
-#           invoke "s_s_c:handler:package:#{action}", [package], params
-#         end
-#       end
-#       package_file.save
-
       # Add Overlay Files
       file_list = FileListFile.new
       while file= file_list.pop("add")
@@ -132,7 +123,8 @@ module SSC
       while file= file_list.pop("remove")
         invoke "s_s_c:handler:overlay_file:remove", [file[:name]], params
       end
-      file_list.save
+      
+      invoke "checkout", params # reload appliance configuration after commit
     end
 
     class << self
