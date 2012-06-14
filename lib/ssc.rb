@@ -92,7 +92,7 @@ module SSC
       # Add, Remove, Ban and Unban  Packages
       package_file= PackageFile.new
       packages = {}
-      ["add", "remove", "ban", "unban"].each do |action|
+      ["remove", "add", "ban", "unban"].each do |action|
         packages[action] = Array.new
         while package= package_file.pop(action)
           packages[action] << package
@@ -111,14 +111,15 @@ module SSC
       end
       repository_file.save
 
-      # Add, Remove, Ban and Unban  Packages
-      package_file= PackageFile.new
-      ["add", "remove", "ban", "unban"].each do |action|
-        while package= package_file.pop(action)
-          invoke "s_s_c:handler:package:#{action}", [package], params
-        end
-      end
-      package_file.save
+#       # Add, Remove, Ban and Unban  Packages
+#       package_file= PackageFile.new
+#       # Important for downgrade you have to remove package and add new version afterwards
+#       ["remove", "add", "ban", "unban"].each do |action|
+#         while package= package_file.pop(action)
+#           invoke "s_s_c:handler:package:#{action}", [package], params
+#         end
+#       end
+#       package_file.save
 
       # Add Overlay Files
       file_list = FileListFile.new

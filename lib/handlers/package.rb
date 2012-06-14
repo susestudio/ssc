@@ -82,8 +82,8 @@ module SSC
       desc 'package add NAMES', 'add packages to the appliance'
       require_appliance_id
       allow_remote_option
-      def add(*names)
-        names.each do |package|
+      def add(*packages)
+        packages.each do |package|
           if options.remote?
             require_appliance do |appliance|
               if package.is_a?(Hash)
@@ -117,25 +117,32 @@ module SSC
       desc 'package remove NAMES', 'remove packages from the appliance'
       require_appliance_id
       allow_remote_option
-      def remove(*names)
-        names.each do |name|
+      def remove(*packages)
+        packages.each do |package|
           if options.remote?
             require_appliance do |appliance|
-              response= appliance.remove_package(name)
+              if package.is_a?(Hash)
+                response= appliance.remove_package(package[:name])
+              else
+                response= appliance.remove_package(package)
+              end
+           
+              package = (package.is_a?(String))? package : "#{package[:name]}-#{package[:options][:version]}"
+                            
               say case response['state']
               when "changed"
-                "Package #{name} removed. State: #{response['state']}."
+                "\033[32mPackage #{package} removed. State: #{response['state']}.\033[0m"
               when "equal"
-                "Package #{name} not removed."
+                "Package #{package} not removed. State: #{response['state']}."
               else
-                "unknown code"
+                "\033[31munknown code\033[0m"
               end
             end
           else
             package_file= PackageFile.new
-            package_file.push('remove', name)
+            package_file.push('remove', package)
             package_file.save
-            say "#{name} marked for removal"
+            say "#{package} marked for removal"
           end
         end
       end
