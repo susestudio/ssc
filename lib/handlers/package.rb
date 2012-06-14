@@ -76,7 +76,7 @@ module SSC
         else
           package_file.read
         end
-        say out.to_yaml
+        say out.to_yaml if @_invocations[SSC::Client] == ["package"]
       end
 
 

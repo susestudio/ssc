@@ -61,7 +61,7 @@ module SSC
         else
           repo_file['list']
         end
-        say list.to_yaml
+        say list.to_yaml if @_invocations[SSC::Client] == ["repository"]
       end
 
       desc 'repository add REPO_IDS', 'add existing repositories to the appliance'
