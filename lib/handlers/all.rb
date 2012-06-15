@@ -1,5 +1,4 @@
 require 'studio_api'
-require "awesome_print"
 
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
