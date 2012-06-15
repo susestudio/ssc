@@ -114,7 +114,7 @@ module SSC
            #ap studio_packages.compare(local_packages)
            
            if package_file.save # write to software file
-              say "\n\033[32m#{number} packages successfully added to software configuration file\033[0m"
+              say "#{number} packages changed in the software configuration file", :green
            end
            
          else
