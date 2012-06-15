@@ -33,8 +33,9 @@ module SSC
           nil
         end
       end
-      
+
       def push(section, item)
+        clean
         read
         if @parsed_file[section].is_a?(Array)
           @parsed_file[section] |= [ item ]
@@ -55,6 +56,10 @@ module SSC
       def empty_list?
         read
         (!@parsed_file['list']) || (@parsed_file['list'] == []) || (@parsed_file['list'] == {})
+      end
+
+      def clean
+        File.open(@location, 'w') {} if File.exist?(@location)
       end
     end
 
@@ -120,8 +125,8 @@ module SSC
         @path= File.join(Dir.pwd, name)
         @files = if Dir.exist?(@path)
                    {:package   => PackageFile.new(@path),
-                   :repository => RepositoryFile.new(@path),
-                   :file_list  => FileListFile.new(@path)}
+                     :repository => RepositoryFile.new(@path),
+                     :file_list  => FileListFile.new(@path)}
                  else
                    {}
                  end
