@@ -3,7 +3,6 @@ source "http://rubygems.org"
 gem "studio_api", ">= 3.1.2"
 gem "thor", ">=0.14.6"
 gem "json"
-gem "awesome_print"
 
 gem 'simplecov', :require => false, :group => :test
 

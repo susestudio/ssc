@@ -68,7 +68,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<mocha>, [">= 0"])
       s.add_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_dependency(%q<jeweler>, ["~> 1.6.0"])
-      s.add_dependency(%q<rcov>, [">= 0"])
+      s.add_dependency(%q<simplecov>, [">= 0"])
     end
   else
     s.add_dependency(%q<studio_api>, [">= 3.1.2"])

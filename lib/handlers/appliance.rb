@@ -1,5 +1,3 @@
-require 'active_support/core_ext'
-
 module SSC
   module Handler
     class Appliance < Base
@@ -67,13 +65,15 @@ module SSC
         end
       end
 
-      desc "appliance diff", "returns difference between RPMs installed on current machine and Studio configuration"
+      desc "appliance diff", "difference between RPMs installed on current machine and SUSE Studio configuration"
       def diff
-         # get list of installed packages
-         rpm_output = `rpm -qa --qf '%{NAME}#%{VERSION}-%{RELEASE}$'`.split('$').sort # TODO: bug check exit code
-         rpm_output.delete_if {|x| x["gpg-pubkey"] } # remove SUSE gpg-pubkey package
-         
-         local_packages = Hash[rpm_output.map {|e| e.split('#')}]         
+        # get list of installed packages
+        rpm_output = `rpm -qa --qf '%{NAME}#%{VERSION}-%{RELEASE}$'`.split('$').sort # TODO: bug check exit code
+        rpm_output.delete_if {|x| x["gpg-pubkey"] } # remove SUSE gpg-pubkey package
+      
+        raise "\n*** Command 'rpm 'not found: ensure RPM is installed #{$?.exitstatus}" unless $?.success?
+             
+        local_packages = Hash[rpm_output.map {|e| e.split('#')}]         
   	     
 	     # read software yaml and convert to RPM hash format
          studio_packages = {}
