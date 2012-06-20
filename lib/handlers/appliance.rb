@@ -66,7 +66,10 @@ module SSC
       end
 
       desc "appliance diff", "difference between RPMs installed on current machine and SUSE Studio configuration"
+      require_appliance_id
       def diff
+        appliance_state = self.status
+        raise appliance_state if appliance_state != "Appliance Ok"
         # get list of installed packages
         rpm_output = `rpm -qa --qf '%{NAME}#%{VERSION}-%{RELEASE}$'`.split('$').sort # TODO: bug check exit code
         rpm_output.delete_if {|x| x["gpg-pubkey"] } # remove SUSE gpg-pubkey package
