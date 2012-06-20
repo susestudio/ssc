@@ -66,7 +66,7 @@ ssc help [TASK] # Describe available tasks or one specific task
 === Examples
 
 * Creating and modifying a new appliance:
-    $ ssc appliance create web_server --source-id=SOURCE_APPLIANCE_ID --username=USERNAME --password=PASSWORD
+    $ ssc appliance create web_server --source-id=SOURCE_APPLIANCE_ID --username=USERNAME --password=PASSWORD --server=SUSE_STUDIO_SERVER
     $ cd web_server
     $ ssc package list
     $ ssc package add apache
@@ -74,7 +74,7 @@ ssc help [TASK] # Describe available tasks or one specific task
     $ ssc commit
 
 * Checking out an existing appliance and starting a build
-    $ ssc checkout --appliance-id 59836 --username=USERNAME --password=PASSWORD
+    $ ssc checkout --appliance-id 59836 --username=USERNAME --password=PASSWORD --server=SUSE_STUDIO_SERVER
     $ cd APPLIANCE_NAME
     $ ssc build
     $ ssc build status
