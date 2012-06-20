@@ -15,63 +15,51 @@ This is the new version of the the Suse Studio command line client. Built as a p
 
 === Command Listing
 
-    ssc checkout --appliance-id=N --password=PASSWORD --username=USERNAME  # checkout the latest changes to an appliance
-    ssc commit --appliance-id=N --password=PASSWORD --username=USERNAME    # commit changes to studio
-    ssc status --appliance-id=N --password=PASSWORD --username=USERNAME    # show status of the appliance
+    ssc checkout --appliance-id=N --password=PASSWORD --username=USERNAME --server=SUSE_STUDIO_SERVER # checkout the latest changes to an appliance
+    ssc commit                            # commit changes to studio
+    ssc status                            # show status of the appliance
 
 ssc appliance   # manage appliances
 
-    ssc appliance create APPLIANCE_NAME --password=PASSWORD --source-id=N --username=USERNAME  # Create an appliance
-    ssc appliance destroy --appliance-id=N --password=PASSWORD --username=USERNAME             # destroy the current appliance 
-    ssc appliance info --appliance-id=N --password=PASSWORD --username=USERNAME                # show details of a specific appliance
-    ssc appliance list --password=PASSWORD --username=USERNAME                                 # list all appliances
-    ssc appliance status --appliance-id=N --password=PASSWORD --username=USERNAME              # gives status of the appliance
+    ssc appliance create APPLIANCE_NAME --password=PASSWORD --source-id=N --username=USERNAME --server=SUSE_STUDIO_SERVER  # Create an appliance
+    ssc appliance destroy                 # destroy the current appliance
+    ssc appliance info                    # show details of a specific appliance
+    ssc appliance list                    # list all appliances
+    ssc appliance status                  # gives status of the appliance
+    ssc appliance diff                    # get difference between RPMs installed on current machine and SUSE Studio software configuration
 
 ssc package     # manage packages
-
-    ssc package add NAME --appliance-id=N --password=PASSWORD --username=USERNAME
-        # add a package to the appliance
-    ssc package ban NAME --appliance-id=N --password=PASSWORD --username=USERNAME
-        # ban a package from the appliance
-    ssc package list [selected|installed] --appliance-id=N --password=PASSWORD --username=USERNAME
-        # list all selected or installed packages
-    ssc package remove NAME --appliance-id=N --password=PASSWORD --username=USERNAME
-        # remove a package from the appliance
-    ssc package search SEARCH_STRING --appliance-id=N --password=PASSWORD --username=USERNAME
-        # search available packages and patterns
-    ssc package unban NAME --appliance-id=N --password=PASSWORD --username=USERNAME
-        # unban a package for the appliance
+    ssc package add NAME                  # add a package to the appliance
+    ssc package ban NAM                   # ban a package from the appliance
+    ssc package list [selected|installed] # list all selected or installed packages
+    ssc package remove NAME               # remove a package from the appliance
+    ssc package search SEARCH_STRING      # search available packages and patterns
+    ssc package unban NAME                # unban a package for the appliance
 
 ssc repository  # manage repositories
-    ssc repository add REPO_IDS --appliance-id=N --password=PASSWORD --username=USERNAME    
-        # add existing repositories to the appliance
-    ssc repository import URL NAME --password=PASSWORD --username=USERNAME
-        # import a 3rd party repository into appliance
-    ssc repository list --appliance-id=N --password=PASSWORD --username=USERNAME
-        # list all repositories in a given appliance
-    ssc repository remove REPO_IDS --appliance-id=N --password=PASSWORD --username=USERNAME 
-        # remove existing repositories from appliance
-    ssc repository search SEARCH_STRING --password=PASSWORD --username=USERNAME
-        # search all available repositories
-    
+    ssc repository add REPO_IDS           # add existing repositories to the appliance
+    ssc repository import URL NAME        # import a 3rd party repository into appliance
+    ssc repository list                   # list all repositories in a given appliance
+    ssc repository remove REPO_IDS        # remove existing repositories from appliance
+    ssc repository search SEARCH_STRING   # search all available repositories
+
 
 ssc file        # manage files
-    ssc file add PATH --appliance-id=N --password=PASSWORD --username=USERNAME          # create a new overlay file
-    ssc file diff FILE_NAME --appliance-id=N --password=PASSWORD --username=USERNAME    
-        # show the diff of the remote file and the local one
-    ssc file list --appliance-id=N --password=PASSWORD --username=USERNAME              # show all overlay files
-    ssc file remove FILE_NAME --appliance-id=N --password=PASSWORD --username=USERNAME  # removes existing overlay file
-    ssc file show FILE_NAME --appliance-id=N --password=PASSWORD --username=USERNAME    # show the contents of the file
+    ssc file add PATH                     # create a new overlay file
+    ssc file diff FILE_NAME               # show the diff of the remote file and the local one
+    ssc file list                         # show all overlay files
+    ssc file remove FILE_NAME             # removes existing overlay file
+    ssc file show FILE_NAME               # show the contents of the file
 
 
-ssc build       # manage builds 
-    ssc build --appliance-id=N --password=PASSWORD --username=USERNAME  # build an appliance
-    ssc list --appliance-id=N --password=PASSWORD --username=USERNAME   # list builds (running or completed)
-    ssc status --build-id=N --password=PASSWORD --username=USERNAME     # find the build status of an appliance
+ssc build       # manage builds
+    ssc build                             # build an appliance
+    ssc list                              # list builds (running or completed)
+    ssc status --build-id=N               # find the build status of an appliance
 
 ssc template    # manage templates
-  ssc template list SET_NAME --password=PASSWORD --username=USERNAME  # show details of a particular template set
-  ssc template list_sets --password=PASSWORD --username=USERNAME      # list all available template sets
+  ssc template list SET_NAME              # show details of a particular template set
+  ssc template list_sets                  # list all available template sets
 
 ssc help [TASK] # Describe available tasks or one specific task
 
