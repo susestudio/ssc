@@ -74,10 +74,16 @@ ssc help [TASK] # Describe available tasks or one specific task
     $ ssc commit
 
 * Checking out an existing appliance and starting a build
-    $ ssc checkout --appliance-id 59836 --username=USERNAME --password=PASSWORD --server=SUSE_STUDIO_SERVER
+    $ ssc checkout --appliance-id APPLIANCE_ID --username=USERNAME --password=PASSWORD --server=SUSE_STUDIO_SERVER
     $ cd APPLIANCE_NAME
     $ ssc build
     $ ssc build status
+
+* Performing appliance diff between deployed image and configuration in Studio; example assumes that ssc is running within a deployed appliance
+    $ ssc checkout --appliance-id=APPLIANCE_ID --username=USERNAME --password=PASSWORD --server=SUSE_STUDIO_SERVER
+    $ zypper in PACKAGES # install or remove arbitrary package list
+    $ ssc appliance diff # Show configuration difference between running appliance and configuration is Studio
+    $ ssc commit # Commit changes back to Studio
 
 == Contributing to ssc
 
