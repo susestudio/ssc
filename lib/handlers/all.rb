@@ -9,7 +9,7 @@ require 'helper'
 module SSC
   module Handler
     class Base < Thor
-
+      
       include Helper
 
       API_URL= 'https://susestudio.com/api/v2/user'
@@ -18,7 +18,7 @@ module SSC
         super
 
         optional_connection_options= filter_options(options, [:timeout, :proxy])
-        connect(options.username, options.password, optional_connection_options)
+        connect(options.username, options.password, options.server, optional_connection_options)
         @not_local= true if options.remote?
       end
 

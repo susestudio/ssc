@@ -76,34 +76,40 @@ module SSC
         else
           package_file.read
         end
-        say out.to_yaml
+        say out.to_yaml if @_invocations[SSC::Client] == ["package"]
       end
 
       desc 'package add NAMES', 'add packages to the appliance'
       require_appliance_id
       allow_remote_option
-      def add(*names)
-        names.each do |name|
+      def add(*packages)
+        packages.each do |package|
           if options.remote?
-            say "#{name}"
             require_appliance do |appliance|
-              response= appliance.add_package(name)
-              say case response['state']
-              when "changed"
-                "Package #{name} added. State: #{response['state']}."
-              when "equal"
-                "Package #{name} not added."
-              when "broken"
-                "Package #{name} added. State: #{response['state']}. Please resolve dependencies."
+              if package.is_a?(Hash)
+                response= appliance.add_package(package[:name], package[:options])
               else
-                "unknown code"
+                response= appliance.add_package(package)
+              end
+           
+              package = (package.is_a?(String))? package : "#{package[:name]}-#{package[:options][:version]}"
+  
+              say case response['state']
+              when "changed"              
+                "\033[32mPackage #{package} added. State: #{response['state']}\033[0m"
+              when "equal"
+                "Package '#{package}' is equal to the package in the SUSE Studio appliance configuration. State: #{response['state']}"
+              when "broken"
+                "\033[31mPackage #{package} added. State: #{response['state']} . Please resolve dependencies\033[0m"
+              else
+                "\033[31munknown code\033[0m"
               end
             end
           else
             package_file= PackageFile.new
-            package_file.push('add', name)
+            package_file.push('add', package)
             package_file.save
-            say "#{name} marked for addition"
+            say "#{package} marked for addition"
           end
         end
       end
@@ -111,25 +117,32 @@ module SSC
       desc 'package remove NAMES', 'remove packages from the appliance'
       require_appliance_id
       allow_remote_option
-      def remove(*names)
-        names.each do |name|
+      def remove(*packages)
+        packages.each do |package|
           if options.remote?
             require_appliance do |appliance|
-              response= appliance.remove_package(name)
+              if package.is_a?(Hash)
+                response= appliance.remove_package(package[:name])
+              else
+                response= appliance.remove_package(package)
+              end
+           
+              package = (package.is_a?(String))? package : "#{package[:name]}-#{package[:options][:version]}"
+                            
               say case response['state']
               when "changed"
-                "Package #{name} removed. State: #{response['state']}."
+                "\033[32mPackage #{package} removed. State: #{response['state']}.\033[0m"
               when "equal"
-                "Package #{name} not removed."
+                "Package #{package} not removed. State: #{response['state']}."
               else
-                "unknown code"
+                "\033[31munknown code\033[0m"
               end
             end
           else
             package_file= PackageFile.new
-            package_file.push('remove', name)
+            package_file.push('remove', package)
             package_file.save
-            say "#{name} marked for removal"
+            say "#{package} marked for removal"
           end
         end
       end

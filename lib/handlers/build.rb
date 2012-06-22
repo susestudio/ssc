@@ -6,7 +6,7 @@ module SSC
 
       desc "build", "Builds an appliance.\n\nAccepted image types: oem, iso, xen, vmx"
       require_appliance_id
-      method_option :image_type, :type => :string, :default => "iso"
+      method_option :image_type, :type => :string, :default => "iso", :required => true
       def build
         require_appliance_directory do |appliance, files|
           if appliance.status.state != "ok"

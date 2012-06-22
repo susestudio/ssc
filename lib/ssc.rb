@@ -11,7 +11,6 @@ require 'yaml'
 
 module SSC
   class Client < Handler::Base
-
     include DirectoryManager
 
     register Handler::Appliance, :appliance, "appliance", "manage appliances"
@@ -28,12 +27,12 @@ module SSC
         # Show appliance status
         say "Appliance: id: #{appliance.id} | name: #{appliance.name}"
         say "Status: #{appliance.status.state}"
-        say appliance.status.issues
-
+        say appliance.status.issues        
+        
         # Show additions
         say "\nAdditions : \n"
         say "\nPackages : \n"
-        say_array files[:package]["add"]
+        say_array files[:package]["add"] # Why not use invoke "s_s_c:handler:package:list", ["installed"]?
         say "\nRepositories : \n"
         say_array files[:repository]["add"]
         say "\nOverlay Files : \n"
@@ -51,7 +50,7 @@ module SSC
         # Show banned
         say "\nBanned Packages : \n"
         say_array files[:package]["ban"]
-      
+
         # Show unbanned
         say "\nUnBanned Packages : \n"
         say_array files[:package]["unban"]
@@ -62,13 +61,15 @@ module SSC
     require_appliance_id
     def checkout
       params= {:appliance_id => options.appliance_id,
-               :username     => options.username,
-               :password     => options.password}
+        :username     => options.username,
+        :password     => options.password,
+        :server => options.server}
       require_appliance_directory do |appliance, files|
         options= params.merge(:remote => true)
         invoke "s_s_c:handler:package:list", ["installed"], options
         invoke "s_s_c:handler:repository:list",  [], options
         invoke "s_s_c:handler:overlay_file:list",  [], options
+        say "Appliance \"#{appliance.name}\" checked out successfully.", :green if @_invocations[SSC::Client] == ["checkout"]
       end
     rescue ApplianceDirectoryError
       require_appliance do |appliance|
@@ -84,10 +85,24 @@ module SSC
     desc "commit", "commit changes to studio"
     require_appliance_id
     def commit
-      params= {:remote       => true,
-               :appliance_id => options.appliance_id,
-               :username     => options.username,
-               :password     => options.password}
+      params= {:remote => true,
+        :appliance_id => options.appliance_id,
+        :username     => options.username,
+        :password     => options.password,
+        :server => options.server}
+
+      # Add, Remove, Ban and Unban  Packages
+      package_file= PackageFile.new
+      packages = {}
+      ["remove", "add", "ban", "unban"].each do |action|
+        packages[action] = Array.new
+        while package= package_file.pop(action)
+          packages[action] << package
+        end
+        
+        invoke "s_s_c:handler:package:#{action}", packages[action], params
+      end
+      package_file.save
 
       # Add or Remove Repositories
       repository_file= RepositoryFile.new
@@ -97,15 +112,6 @@ module SSC
         end
       end
       repository_file.save
-
-      # Add, Remove, Ban and Unban  Packages
-      package_file= PackageFile.new
-      ["add", "remove", "ban", "unban"].each do |action|
-        while package= package_file.pop(action)
-          invoke "s_s_c:handler:package:#{action}", [package], params
-        end
-      end
-      package_file.save
 
       # Add Overlay Files
       file_list = FileListFile.new
@@ -117,7 +123,8 @@ module SSC
       while file= file_list.pop("remove")
         invoke "s_s_c:handler:overlay_file:remove", [file[:name]], params
       end
-      file_list.save
+      
+      invoke "checkout", params # reload appliance configuration after commit
     end
 
     class << self

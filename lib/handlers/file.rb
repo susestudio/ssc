@@ -134,7 +134,7 @@ module SSC
           else
             file_list["list"]
           end
-          say out.to_yaml
+          say out.to_yaml if @_invocations[SSC::Client] == ["file"]
         end
       rescue ApplianceDirectoryError
         require_appliance do |appliance|

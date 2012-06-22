@@ -15,10 +15,21 @@ module SSC
       module ClassMethods
         def require_authorization
           config= get_config
-          method_option :username, :type => :string, :required => true, 
-            :default => config["username"], :aliases => "-u"
-          method_option :password, :type => :string, :required => true, 
-            :default => config["password"], :aliases => "-p"
+          server = 'susestudio.com'
+          server = config["server"] if config["server"]
+          method_option :server, :type => :string, :required => false, 
+            :default => server
+          if File.exists?("./.sscrc")
+            method_option :username, :type => :string, :required => false, 
+              :default => config["username"]
+            method_option :password, :type => :string, :required => false, 
+              :default => config["password"]
+          else
+            method_option :username, :type => :string, :required => true, 
+              :default => config["username"]
+            method_option :password, :type => :string, :required => true, 
+              :default => config["password"]
+          end
           method_option :proxy, :type => :string
           method_option :timeout, :type => :string
         end
@@ -26,8 +37,13 @@ module SSC
         def require_appliance_id
           require_authorization
           config= get_config
-          method_option :appliance_id, :type => :numeric, :required => true,
-            :default => config["appliance_id"]
+          if File.exists?("./.sscrc")
+            method_option :appliance_id, :type => :numeric, :required => false,
+              :default => config["appliance_id"]
+          else
+            method_option :appliance_id, :type => :numeric, :required => false,
+              :default => config["appliance_id"]
+          end
         end
 
         def require_build_id
@@ -55,8 +71,9 @@ module SSC
 
 
         # Establish connection to Suse Studio with username, password
-        def connect(user, pass, connection_options)
-          @connection= StudioApi::Connection.new(user, pass, self.class::API_URL, connection_options)
+        def connect(user, pass, server, connection_options)
+          api_url = "https://#{server}/api/v2/user"
+          @connection= StudioApi::Connection.new(user, pass, api_url, connection_options)
           StudioApi::Util.configure_studio_connection @connection
         end
 
@@ -84,7 +101,7 @@ module SSC
           if options.appliance_id
             yield(StudioApi::Appliance.find(options.appliance_id))
           else
-            raise "Unable to find the appliance"
+            raise Thor::Error, "Unable to find the appliance"
           end
         end
 
@@ -97,7 +114,7 @@ module SSC
                 :package    => PackageFile.new,
                 :repository => RepositoryFile.new,
                 :file_list  => FileListFile.new }
-              yield(appliance, files)
+                yield(appliance, files)
             end
           else
             raise ApplianceDirectoryError, 'Appliance directory not found'

@@ -65,6 +65,66 @@ module SSC
         end
       end
 
+      desc "appliance diff", "difference between RPMs installed on current machine and SUSE Studio configuration"
+      require_appliance_id
+      def diff
+        appliance_state = self.status
+        raise appliance_state if appliance_state != "Appliance Ok"
+        # get list of installed packages
+        rpm_output = `rpm -qa --qf '%{NAME}#%{VERSION}-%{RELEASE}$'`.split('$').sort # TODO: bug check exit code
+        rpm_output.delete_if {|x| x["gpg-pubkey"] } # remove SUSE gpg-pubkey package
+      
+        raise "\n*** Command 'rpm 'not found: ensure RPM is installed #{$?.exitstatus}" unless $?.success?
+             
+        local_packages = Hash[rpm_output.map {|e| e.split('#')}]         
+  	     
+	     # read software yaml and convert to RPM hash format
+         studio_packages = {}
+         package_file= PackageFile.new
+         
+         package_file.read["list"].map{|hash| hash.map{|k,v| studio_packages[k] = v["version"] }}
+         studio_packages =  Hash[studio_packages.sort]
+         
+         number = studio_packages.compare(local_packages).count + local_packages.compare(studio_packages).count
+                     
+         if number > 0
+           say "You have #{number} packages that differ from SUSE Studio application configuration:\n"
+                    
+           # compare studio packages with locally installed packages
+           # if studio package list differ from local package list, add package to remove section
+           # returns Hash of hashes with package name as a key and versions [studio, local]
+           
+           say "\n\033[31mremove:\033[0m"
+           studio_packages.compare(local_packages).map do |name, version|
+              package = { :name => name, :options => Hash[:version,version.first]}
+              package_file.push('remove', package) # downgrade if version.last
+              say "#{name}-#{version.first}"
+           end
+           
+           # compare locally installed packages with studio packages
+           # if local package list differ from studio, add package to add section
+           # returns Hash of hashes with package name as a key and versions [local, studio]
+           
+           say "\n\033[32madd:\033[0m"
+           local_packages.compare(studio_packages).map do |name, version|
+              package = { :name => name, :options => Hash[:version,version.first]} # commit local package version if differ from studio 
+              package_file.push('add', package)
+              say "#{name}-#{version.first}"
+           end
+  
+                    
+           #say "You have #{studio_packages.compare(local_packages).count} packages that differ from SUSE Studio application configuration:\n"
+           #ap studio_packages.compare(local_packages)
+           
+           if package_file.save # write to software file
+              say "#{number} packages changed in the software configuration file", :green
+           end
+           
+         else
+           say "You SUSE Studio software configuration is up-to-date", :green  
+         end
+      end
+      
       private
 
       def download_url(appliance)
@@ -74,6 +134,21 @@ module SSC
           appliance.builds.last.download_url
         end
       end
+      
     end
   end
 end
+
+
+class Hash
+  def compare(other)
+    self.keys.inject({}) do |memo, key|
+      unless self[key] == other[key]
+        memo[key] = [self[key], other[key]] 
+      end
+      memo
+    end
+  end
+end
+
+
